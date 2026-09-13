@@ -1,13 +1,16 @@
 # zd-dashboards
 
-Static, self-contained HTML dashboards published live via GitHub Pages.
+Static, self-contained HTML dashboards published live on Netlify and GitHub Pages.
 
 ## Live links
 
 | Page | Netlify (short link to share) | GitHub Pages |
 |---|---|---|
-| Zameen Developments (site root) | https://zddashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/ |
-| Dashboard index | https://zddashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+| Zameen Developments | https://zd-dashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+| Dashboard index | https://zd-dashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/zd-dashboards/ |
+
+On Netlify the site root serves the dashboard itself (see the rewrite in
+`netlify.toml`); on GitHub Pages the root serves the index page instead.
 
 Both hosts serve the same repo and update from the same push, so either link
 works. Share the Netlify one — it is shorter and easier to read out.
@@ -38,7 +41,8 @@ so an updated dashboard reaches viewers on their next load.
 To connect it (once): Netlify → `Add new site` → `Import an existing project` →
 `GitHub` → pick `sajjadsj44-max/zd-dashboards` → branch `main` → `Deploy`.
 Leave build command and publish directory blank; `netlify.toml` supplies them.
-Then `Site configuration` → `Change site name` → `zddashboard`.
+Then `Site configuration` → `Change site name` → `ZD-Dashboard`
+(Netlify lowercases it into the URL, giving `zd-dashboard.netlify.app`).
 
 ## How publishing is wired
 
