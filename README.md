@@ -4,10 +4,13 @@ Static, self-contained HTML dashboards published live via GitHub Pages.
 
 ## Live links
 
-| Page | URL |
-|---|---|
-| Dashboard index | https://sajjadsj44-max.github.io/zd-dashboards/ |
-| Zameen Developments | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+| Page | Netlify (short link to share) | GitHub Pages |
+|---|---|---|
+| Dashboard index | https://zddashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/ |
+| Zameen Developments | https://zddashboard.netlify.app/zameen-developments/ | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+
+Both hosts serve the same repo and update from the same push, so either link
+works. Share the Netlify one — it is shorter and easier to read out.
 
 Public and read-only — anyone with the URL opens them in any browser, phone or
 desktop, with no login and nothing to install. Viewers cannot edit anything.
@@ -24,6 +27,18 @@ Don't commit confidential data.
 The URL never changes, so links already shared stay valid across every update.
 If someone still sees an old copy, GitHub Pages caches HTML for up to 10
 minutes — a hard refresh (Ctrl + F5, or Cmd + Shift + R) clears it immediately.
+
+## Netlify
+
+Netlify is connected to this repo and redeploys on every push to `main`, in
+parallel with GitHub Pages. `netlify.toml` holds the whole configuration:
+publish the repo root, no build command, and revalidate HTML on every request
+so an updated dashboard reaches viewers on their next load.
+
+To connect it (once): Netlify → `Add new site` → `Import an existing project` →
+`GitHub` → pick `sajjadsj44-max/zd-dashboards` → branch `main` → `Deploy`.
+Leave build command and publish directory blank; `netlify.toml` supplies them.
+Then `Site configuration` → `Change site name` → `zddashboard`.
 
 ## How publishing is wired
 
@@ -53,6 +68,7 @@ connection.
 
 ```
 index.html                          landing page listing all dashboards
+netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
