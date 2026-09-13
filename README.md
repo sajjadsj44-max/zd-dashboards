@@ -2,29 +2,6 @@
 
 Static, self-contained HTML dashboards published live via GitHub Pages.
 
-## One-time activation (2 settings, ~1 minute)
-
-The files are all in place, but GitHub Pages has never been switched on for this
-repo, and the repo is currently **private**. Two settings in the GitHub web UI
-turn the live links on. Neither can be done from the API, so they have to be
-clicked once by the repo owner.
-
-**1. Make the repo public** — so friends can open the links without a GitHub account.
-`Settings` → `General` → scroll to `Danger Zone` → `Change repository visibility`
-→ `Make public`.
-
-> Skip this only if you have GitHub Pro/Team. On a private repo Pages still works,
-> but the site stays private too: viewers must be signed in to GitHub *and* be
-> invited as collaborators. For "send a link to a friend", public is the one you want.
-> Note the dashboard file becomes publicly readable, so don't commit anything
-> confidential to this repo.
-
-**2. Turn on Pages** —
-`Settings` → `Pages` → under `Build and deployment`, set
-`Source` = **Deploy from a branch**, `Branch` = **main**, folder = **/ (root)** → `Save`.
-
-A minute or two later the links below go live. They never change after that.
-
 ## Live links
 
 | Page | URL |
@@ -33,30 +10,40 @@ A minute or two later the links below go live. They never change after that.
 | Zameen Developments | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
 
 Public and read-only — anyone with the URL opens them in any browser, phone or
-desktop, no login and nothing to install. Viewers cannot edit anything.
+desktop, with no login and nothing to install. Viewers cannot edit anything.
 
-## How the "live" part works
+Because the repo is public, everything committed here is publicly readable.
+Don't commit confidential data.
 
-The site is served straight from the `main` branch, so updating a dashboard is:
+## Updating a dashboard (the "live" part)
 
-1. Replace the dashboard file in this repo with the newer version.
+1. Replace the dashboard file, e.g. `zameen-developments/index.html`.
 2. Commit and push to `main`.
-3. ~1–2 minutes later the same URL serves the new version for everybody.
+3. ~1–2 minutes later the same URL serves the new version to everybody.
 
-The URL never changes, so links you already shared stay valid across every update.
-If someone still sees an old copy, GitHub Pages caches HTML for up to 10 minutes —
-a hard refresh (Ctrl + F5, or Cmd + Shift + R) clears it immediately.
+The URL never changes, so links already shared stay valid across every update.
+If someone still sees an old copy, GitHub Pages caches HTML for up to 10
+minutes — a hard refresh (Ctrl + F5, or Cmd + Shift + R) clears it immediately.
 
-`.github/workflows/deploy-pages.yml` additionally force-mirrors `main` onto a
-`gh-pages` branch on every push, so if Pages is ever pointed at `gh-pages`
-instead of `main`, that branch is already current. Either source works.
+## How publishing is wired
 
-## Adding or updating a dashboard
+Pages `Source` is set to **GitHub Actions**, so
+`.github/workflows/deploy-pages.yml` does the publishing on every push to `main`:
 
-- **Update an existing one:** overwrite its `index.html` (e.g. `zameen-developments/index.html`).
-  Keep the filename `index.html` so the short folder URL keeps working.
-- **Add a new one:** create `<dashboard-name>/index.html`, then add a card for it in the
-  root `index.html`.
+- **`deploy`** packages the repo and deploys it to Pages.
+- **`mirror`** force-pushes `main` onto a `gh-pages` branch, so switching
+  `Source` to *Deploy from a branch* (`main` or `gh-pages`, `/ (root)`) would
+  also serve the current site without editing the workflow.
+
+Note for future changes: do not add `actions/configure-pages` with
+`enablement: true`. The workflow `GITHUB_TOKEN` cannot create a Pages site
+(`Resource not accessible by integration`) and it is not needed — the site
+already exists.
+
+## Adding a new dashboard
+
+Create `<dashboard-name>/index.html`, then add a card for it in the root
+`index.html`. Keep the filename `index.html` so the short folder URL works.
 
 Each dashboard is one self-contained HTML file. External libraries (Chart.js,
 PapaParse) load from the jsDelivr CDN at runtime, so viewers need an internet
@@ -67,6 +54,6 @@ connection.
 ```
 index.html                          landing page listing all dashboards
 zameen-developments/index.html      Zameen Developments dashboard
-.github/workflows/deploy-pages.yml  mirrors main onto gh-pages on every push
+.github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
