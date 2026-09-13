@@ -1,8 +1,9 @@
 name: Publish dashboards to GitHub Pages
 
-# GitHub Pages serves the `gh-pages` branch. This keeps that branch an exact
-# mirror of `main`, so pushing a dashboard update to `main` is all it takes for
-# the live links to change for everyone.
+# Pages on this repo is configured with Source = "GitHub Actions", so the site
+# is deployed by the `deploy` job below. The `mirror` job additionally keeps a
+# gh-pages branch identical to main, so switching Source to "Deploy from a
+# branch" would also work without any changes here.
 
 on:
   push:
@@ -11,16 +12,36 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: publish-pages
   cancel-in-progress: false
 
 jobs:
-  publish:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  mirror:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Mirror main onto gh-pages
