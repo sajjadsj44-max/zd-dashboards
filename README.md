@@ -6,8 +6,8 @@ Static, self-contained HTML dashboards published live via GitHub Pages.
 
 | Page | Netlify (short link to share) | GitHub Pages |
 |---|---|---|
-| Dashboard index | https://zddashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/ |
-| Zameen Developments | https://zddashboard.netlify.app/zameen-developments/ | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+| Zameen Developments (site root) | https://zddashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/ |
+| Dashboard index | https://zddashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
 
 Both hosts serve the same repo and update from the same push, so either link
 works. Share the Netlify one — it is shorter and easier to read out.

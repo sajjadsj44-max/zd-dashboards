@@ -22,3 +22,17 @@
     Cache-Control = "public, max-age=0, must-revalidate"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Friends are given the bare site root, so serve the dashboard there rather than
+# an index page they have to click through. status 200 rewrites instead of
+# redirecting, so the address bar keeps showing the short root URL - which is the
+# whole point of the short name. force is required because "/" would otherwise
+# match the static index.html and never reach this rule.
+#
+# The index page stays reachable at /index.html, and every dashboard keeps its
+# own /<name>/ path, so links already shared are unaffected.
+[[redirects]]
+  from = "/"
+  to = "/zameen-developments/index.html"
+  status = 200
+  force = true
