@@ -1,0 +1,24 @@
+# Netlify configuration for the ZD dashboards site.
+#
+# The repo is already a plain static site, so there is nothing to build:
+# Netlify publishes the repo root as-is and serves each folder's index.html.
+# GitHub Pages keeps working from the same branch in parallel.
+
+[build]
+  publish = "."
+  command = ""
+
+# Dashboards are edited in place and shared by a fixed URL, so a cached copy is
+# a stale copy. Revalidate HTML on every request: viewers get the new version
+# immediately after a push instead of waiting out a cache window.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
