@@ -59,6 +59,28 @@ Note for future changes: do not add `actions/configure-pages` with
 (`Resource not accessible by integration`) and it is not needed — the site
 already exists.
 
+## Publishing a new dashboard version
+
+The published file is a hardened build, not the authoring copy. Regenerate it
+rather than committing a new export directly:
+
+```sh
+npm install terser clean-css-cli          # once
+tools/harden.py NEW_VERSION.html zameen-developments/index.html
+```
+
+`tools/harden.py` states authorship in the markup, metadata, sidebar and at
+runtime, then minifies the stylesheet and scripts. Pass `--no-minify` to inject
+the ownership markers while keeping sources readable.
+
+A published single-file dashboard can always be saved by anyone who can view it;
+that is how the web works and no setting changes it. The build exists to make an
+unattributed copy awkward to produce and easy to disprove, not to prevent
+copying.
+
+The authoring copy is kept outside this repo (see `.gitignore`) so a clean,
+readable version is not published beside the hardened one.
+
 ## Adding a new dashboard
 
 Create `<dashboard-name>/index.html`, then add a card for it in the root

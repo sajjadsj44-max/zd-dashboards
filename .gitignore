@@ -1,0 +1,6 @@
+# The authoring copy of a dashboard is deliberately not published here.
+# Only the hardened build in <dashboard>/index.html is committed - shipping a
+# clean, readable copy beside it would undo the point of hardening.
+src/
+*.src.html
+node_modules/
