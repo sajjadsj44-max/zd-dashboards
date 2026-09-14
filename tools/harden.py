@@ -70,6 +70,88 @@ def run_tool(cmd, text):
 # placeholders first and restored at the end.
 # --------------------------------------------------------------------------
 
+# --------------------------------------------------------------------------
+# Subresource Integrity for the CDN libraries
+#
+# The version is pinned in each URL, but a pinned version is not a pinned file:
+# whatever jsDelivr returns runs with full access to the page and to the sheet
+# data on it. SRI makes the browser refuse anything that is not the exact byte
+# stream these digests were taken from.
+#
+# The digests are computed from the published npm tarball, which is the same
+# artifact jsDelivr mirrors. After any version bump, recompute:
+#
+#   npm pack chart.js@4.4.1
+#   tar -xOzf chart.js-4.4.1.tgz package/dist/chart.umd.js \
+#     | openssl dgst -sha384 -binary | openssl base64 -A
+#
+# Note the Chart.js filename. chart.js does not publish dist/chart.umd.min.js;
+# asking jsDelivr for it makes jsDelivr minify dist/chart.umd.js on the fly and
+# serve a file that exists nowhere upstream, so no digest computed from the
+# package would ever match it. dist/chart.umd.js *is* the minified UMD build
+# the package ships, so CDN_REWRITES points at that instead.
+# --------------------------------------------------------------------------
+
+CDN_REWRITES = {
+    "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js":
+        "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js",
+}
+
+SRI = {
+    "https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js":
+        "sha384-D/t0ZMqQW31H3az8ktEiNb39wyKnS82iFY52QPACM+IjKW3jDUhyIgh2PApRqJZs",
+    "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js":
+        "sha384-dug+JxfBvklEQdJ4AYuBBAIScUz0bVN73xpy273gcAwHjb3qI0fXmuYNaNfdyYJG",
+    "https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js":
+        "sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz",
+}
+
+SCRIPT_SRC_RE = re.compile(r"<script\b([^>]*?)\bsrc=([\"'])(.*?)\2([^>]*?)>", re.I)
+# ExcelJS is fetched lazily by the export path, so it is a script element built
+# in JS rather than a tag in the markup. Matches both the readable authoring
+# form (`el.src = ZDX_SRC;`) and the minified one (`a.src=ZDX_SRC,`).
+ZDX_ASSIGN_RE = re.compile(r"\b([A-Za-z_$][\w$]*)\s*\.\s*src\s*=\s*ZDX_SRC\b")
+
+
+def apply_sri(html):
+    """Pin every CDN library to a digest. Returns (html, [warnings])."""
+    warnings = []
+
+    for old, new in CDN_REWRITES.items():
+        if old in html:
+            html = html.replace(old, new)
+
+    tagged = []
+
+    def tag(m):
+        before, quote, src, after = m.group(1), m.group(2), m.group(3), m.group(4)
+        digest = SRI.get(src)
+        if not digest or "integrity=" in (before + after):
+            return m.group(0)
+        tagged.append(src)
+        return f'<script{before}src={quote}{src}{quote}{after} integrity="{digest}" crossorigin="anonymous">'
+
+    html = SCRIPT_SRC_RE.sub(tag, html)
+
+    for src in SRI:
+        if f'src="{src}"' in html and src not in tagged:
+            warnings.append(f"{src} is referenced but was not given an integrity attribute")
+
+    zdx_digest = SRI.get("https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js")
+    if "ZDX_SRC" in html and zdx_digest:
+        if ".integrity" in html:
+            pass
+        elif ZDX_ASSIGN_RE.search(html):
+            html = ZDX_ASSIGN_RE.sub(
+                lambda m: f'{m.group(1)}.integrity="{zdx_digest}",'
+                          f'{m.group(1)}.crossOrigin="anonymous",{m.group(0)}',
+                html, count=1)
+        else:
+            warnings.append("the ExcelJS loader was not recognised - it is loading without SRI")
+
+    return html, warnings
+
+
 STYLE_RE = re.compile(r"(<style[^>]*>)(.*?)(</style>)", re.S | re.I)
 # Only inline scripts. A tag carrying src= has no body to minify.
 SCRIPT_RE = re.compile(r"(<script(?![^>]*\bsrc=)[^>]*>)(.*?)(</script>)", re.S | re.I)
@@ -177,6 +259,10 @@ def main():
     html = inject_metadata(html, year, build_id)
     html = inject_credit(html, year, build_id)
     html = inject_runtime_marker(html, year, build_id)
+
+    html, sri_warnings = apply_sri(html)
+    for w in sri_warnings:
+        print(f"warning: {w}", file=sys.stderr)
 
     styles, scripts = [], []
     html = extract(STYLE_RE, html, styles, "S")

@@ -10,18 +10,38 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# No workflow-level write permission. Each job asks for what it needs and
+# nothing more: `deploy` publishes to Pages and never touches the repo, so
+# giving it contents:write - as a workflow-level grant does - hands repo write
+# to every action it runs for no reason. Only `mirror` pushes a branch.
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
   group: publish-pages
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  # Nothing else here can catch a broken dashboard: there is no build step and
+  # no tests, so an unparseable page or a dropped integrity digest would go
+  # straight to the URL people have already been given. Run the checks first
+  # and let a failure stop the deploy.
+  validate:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate the site
+        run: python3 tools/validate.py
+
+  deploy:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read      # actions/checkout; a job-level block replaces the
+      pages: write        # whole set, so read has to be restated here
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -38,8 +58,15 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
+  # The mirror is a fallback for switching Pages back to "Deploy from a branch".
+  # It waits for the deploy: force-pushing a commit onto gh-pages that was just
+  # rejected as unpublishable would leave the fallback branch in a worse state
+  # than the live site.
   mirror:
+    needs: deploy
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4

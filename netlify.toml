@@ -8,20 +8,41 @@
   publish = "."
   command = ""
 
-# Dashboards are edited in place and shared by a fixed URL, so a cached copy is
-# a stale copy. Revalidate HTML on every request: viewers get the new version
-# immediately after a push instead of waiting out a cache window.
+# One header block for every path, deliberately.
+#
+# The link actually handed out is the bare site root, and the rewrite at the
+# bottom of this file serves the dashboard there. "/" does not end in ".html",
+# so a rule scoped to "/*.html" would skip the single most-visited URL on the
+# site - it would be the one address served with no security headers at all.
+# Scoping to "/*" covers the root, the index page and every dashboard folder.
+#
+# Cache-Control: dashboards are edited in place and shared by a fixed URL, so a
+# cached copy is a stale copy. Revalidate on every request; viewers get the new
+# version immediately after a push instead of waiting out a cache window.
 [[headers]]
   for = "/*"
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
-
-[[headers]]
-  for = "/*.html"
-  [headers.values]
-    Cache-Control = "public, max-age=0, must-revalidate"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+    # The dashboard states its authorship in the markup, the metadata and the
+    # sidebar. None of that survives being framed inside someone else's page
+    # with their chrome around it, which is a cheaper way to pass the work off
+    # as another party's than editing the file. Refuse to be framed off-origin.
+    X-Frame-Options = "SAMEORIGIN"
+
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
+
+    # Allow-list exactly what the dashboard uses and nothing else:
+    #   script  inline (the dashboard itself), jsDelivr (Chart.js, PapaParse,
+    #           ExcelJS) and docs.google.com (the gviz JSONP callbacks)
+    #   style   inline only - there is no external stylesheet
+    #   img     data: for the embedded logos, blob: for chart canvas exports
+    #   blob:   in default-src so CSV/XLSX object-URL downloads are not blocked
+    # 'unsafe-inline' is unavoidable while the dashboard ships as one
+    # self-contained file; it stays scoped to script and style.
+    Content-Security-Policy = "default-src 'self' blob:; base-uri 'self'; object-src 'none'; frame-ancestors 'self'; frame-src 'none'; form-action 'none'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://docs.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://docs.google.com https://cdn.jsdelivr.net"
 
 # Friends are given the bare site root, so serve the dashboard there rather than
 # an index page they have to click through. status 200 rewrites instead of
