@@ -4,3 +4,6 @@
 src/
 *.src.html
 node_modules/
+
+# scratch
+.work/

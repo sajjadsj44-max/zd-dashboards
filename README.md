@@ -31,6 +31,37 @@ The URL never changes, so links already shared stay valid across every update.
 If someone still sees an old copy, GitHub Pages caches HTML for up to 10
 minutes — a hard refresh (Ctrl + F5, or Cmd + Shift + R) clears it immediately.
 
+## Data sources
+
+The Change Management app reads **two Google Sheets** over the gviz JSONP
+endpoint, both of which must be shared as *Anyone with the link · Viewer* or the
+dashboard cannot read them:
+
+| What | Sheet | Read as |
+|---|---|---|
+| RFI / design change log | `Change Management-Cost Impact` | first tab, `gid=0` |
+| Per-project cost, area, rate and dates | `Projects Summary` | first tab, then by tab name |
+
+`SHEET_ID` and `PD_SHEET_ID` hold the two workbook ids. `SHEET3_CANDIDATES`
+is tried in order: the `Projects Summary` workbook first, then a
+`Sheet 3` / `Project Details` / `Projects` / `Project Data` / `Master` tab
+inside the log workbook, so a project summary kept as a tab in the log
+workbook still works with no code change.
+
+The project summary needs these eight columns. Headers are matched by regex,
+not by position, so the wording can vary — `Covered Area (Sft)` and
+`Area, Sft` both resolve:
+
+```
+Project Name | Original Contract Cost (PKR) | Covered Area (Sft) |
+Original Rate / Sft (PKR) | Contract Date | Contract Duration (Days) |
+Expected Completion | Remarks
+```
+
+Rate is derived as cost ÷ area when the rate cell is blank. Project names are
+matched to the log through the built-in `PROJECTS` registry, so `NEO` in the
+log and `Zameen NEO` in the summary resolve to the same project.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
