@@ -105,6 +105,7 @@
     <button class="btn" id="pyRefresh">&#8635; Refresh now</button>
     <button class="btn" id="pyHardReset" title="Clear the cache and re-read the Payment Control Sheet from scratch">&#8634; Hard reset</button>
     <button class="btn" id="pyCsv">&#8681; Export CSV</button>
+    <button class="btn" id="pyKpiToggle">&#128065; Show summary cards</button>
   </div>
 
   <div class="sub" id="pyVendorInfo" style="display:none;margin:0 2px 10px;font-weight:600;color:var(--head)"></div>
@@ -112,7 +113,7 @@
   <div class="banner" id="pyBanner"></div>
   <div id="pyScope"></div>
 
-  <div class="paykpis">
+  <div class="paykpis" id="pyKpis">
     <div class="pk" style="border-top-color:var(--blue)">
       <h5>Total project amount</h5><div class="v" id="pyContract">&mdash;</div>
       <div class="s" id="pyContractS">vendor contract value</div></div>
@@ -137,6 +138,25 @@
       <h5>In approval</h5><div class="v" id="pyPipe">&mdash;</div>
       <div class="s" id="pyPipeS">awaiting release</div></div>
   </div>
+  <script>
+  (function(){
+    var KEY='pyKpisHidden';
+    var box=document.getElementById('pyKpis');
+    var btn=document.getElementById('pyKpiToggle');
+    function apply(hidden){
+      box.style.display=hidden?'none':'';
+      btn.innerHTML=hidden?'&#128065; Show summary cards':'&#128065;&#8203; Hide summary cards';
+    }
+    var stored=localStorage.getItem(KEY);
+    apply(stored===null?true:stored==='1');
+    if(stored===null) localStorage.setItem(KEY,'1');
+    btn.addEventListener('click',function(){
+      var hidden=box.style.display!=='none';
+      localStorage.setItem(KEY,hidden?'1':'0');
+      apply(hidden);
+    });
+  })();
+  </script>
 
   <div class="paywrap">
     <div class="payhd"><div><h3>Where vouchers are waiting</h3>
