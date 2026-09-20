@@ -93,6 +93,37 @@ body[data-mod="pay"] .modbtn#tabPAY.on,body[data-mod="pay"] .exec-sect{color:inh
 #modAdmin.on{background:var(--admin-charcoal)}
 @media(max-width:1250px){.exec-kgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.exec-modrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.exec-kgrid{grid-template-columns:repeat(2,minmax(0,1fr))}.exec-modrow{grid-template-columns:1fr}.exechead .meta{margin-left:0}}
+/* ---- per-module colour re-theming (scoped CSS-variable overrides; structure untouched) ---- */
+body[data-mod="pay"]{--head:#0b5566;--blue-d:#0d6b4f}
+body[data-mod="ra"]{--head:#233549}
+body[data-mod="feas"]{--head:#1e6b3a;--blue-d:#1e6b3a}
+body[data-mod="admin"]{--head:#33393f;--blue-d:#33393f}
+body[data-mod="cm"]{--head:#17375e}
+/* ---- global cross-module search ---- */
+.globalsearch{position:relative;max-width:560px;margin:0 0 14px}
+.globalsearch .gsic{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;opacity:.55;pointer-events:none}
+.globalsearch input{width:100%;padding:10px 14px 10px 34px;border:1px solid var(--line);border-radius:9px;background:#fff;font-size:13px;box-shadow:0 1px 3px rgba(16,42,72,.06)}
+.globalsearch input:focus{outline:0;border-color:var(--blue);box-shadow:0 0 0 3px rgba(43,125,233,.13)}
+.gsresults{display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:9px;box-shadow:0 10px 30px rgba(15,41,66,.18);max-height:420px;overflow:auto;z-index:70}
+.gsresults.on{display:block}
+.gs-grp{font-size:9.5px;letter-spacing:1px;color:var(--muted);font-weight:800;padding:9px 14px 4px;text-transform:uppercase;background:#f8fafc}
+.gs-row{display:flex;align-items:center;gap:10px;padding:8px 14px;cursor:pointer;font-size:12.5px;border-bottom:1px solid #f2f5f9}
+.gs-row:hover{background:#f2f7ff}
+.gs-row .nm{flex:1;color:#3c4c60;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gs-row .nm b{color:var(--head)}
+.gs-row .tag2{font-size:9.5px;font-weight:700;color:var(--muted)}
+.gs-empty{padding:16px 14px;color:var(--muted);font-size:12px;text-align:center}
+/* ---- ageing bands (Change Management > Time Impact / Ageing) ---- */
+.agebands{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.ageband{border:1px solid var(--line);border-radius:8px;padding:12px 13px;text-align:center}
+.ageband h6{font-size:9.5px;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:8px;text-transform:uppercase}
+.ageband .v{font-size:22px;font-weight:800;color:var(--head)}
+.ageband.b0{border-top:3px solid var(--green)}
+.ageband.b1{border-top:3px solid #0d9488}
+.ageband.b2{border-top:3px solid var(--amber)}
+.ageband.b3{border-top:3px solid #e07a2c}
+.ageband.b4{border-top:3px solid var(--red)}
+@media(max-width:900px){.agebands{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -179,6 +210,12 @@ body[data-mod="pay"] .modbtn#tabPAY.on,body[data-mod="pay"] .exec-sect{color:inh
 </aside>
 
 <main class="main">
+
+<div class="globalsearch" id="globalSearchWrap">
+  <span class="gsic">&#128269;</span>
+  <input type="search" id="globalSearchInput" autocomplete="off" placeholder="Search projects, RFIs / change log, vendors, BOQ items, rate database…">
+  <div class="gsresults" id="globalSearchResults"></div>
+</div>
 
 <div id="appEXEC" class="execwrap"></div>
 
@@ -844,6 +881,10 @@ body[data-mod="pay"] .modbtn#tabPAY.on,body[data-mod="pay"] .exec-sect{color:inh
       <div class="kpi" style="border-top-color:var(--amber)"><h5>OPEN &gt; 30 DAYS</h5><div class="row"><div class="val" style="color:var(--amber)" id="tAged">0</div></div></div>
       <div class="kpi" style="border-top-color:var(--blue)"><h5>AVG. AGE OF OPEN ITEMS</h5><div class="row"><div class="val" style="color:var(--blue)" id="tAvg">0<small> days</small></div></div></div>
     </div>
+    <div class="panel" id="ageingBandsPanel" style="margin-bottom:13px">
+      <h3>AGEING BANDS — OPEN ITEMS BY AGE</h3>
+      <div class="bd" id="ageingBandsBody" style="padding:13px 15px"></div>
+    </div>
     <div class="panel"><h3>AGEING — OPEN &amp; UNRESOLVED ITEMS</h3>
       <div class="scroll" style="max-height:430px"><table>
         <thead><tr><th>Log ID</th><th>Project</th><th>Description</th><th>Raised By</th><th>Date Raised</th>
@@ -1268,6 +1309,227 @@ body[data-mod="pay"] .modbtn#tabPAY.on,body[data-mod="pay"] .exec-sect{color:inh
 
   if(document.readyState==='complete') setTimeout(warmUpAndLand, 30);
   else window.addEventListener('load', function(){ setTimeout(warmUpAndLand, 30); });
+
+})();
+</script>
+<script>
+/* ===== Global search + Ageing bands — additive, reads the real live globals (ALL, PAYROWS, RA, PROJECTS)
+   already declared by the main script; does not modify any existing function or variable. ===== */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function proxyClick(id){ var e=$(id); if(e) e.click(); }
+  function fireEvt(el,type){
+    try{ el.dispatchEvent(new Event(type,{bubbles:true})); }
+    catch(err){ var ev=document.createEvent('Event'); ev.initEvent(type,true,true); el.dispatchEvent(ev); }
+  }
+
+  /* =============================== GLOBAL SEARCH =============================== */
+  var input=$('globalSearchInput'), results=$('globalSearchResults'), wrap=$('globalSearchWrap');
+  if(input && results && wrap){
+
+    function openRA(view, focusId, val){
+      proxyClick('tabRA');
+      setTimeout(function(){
+        var btn=document.querySelector('#raSub button[data-rv="'+view+'"]');
+        if(btn) btn.click();
+        setTimeout(function(){
+          var f=$(focusId);
+          if(f){ f.value=val; fireEvt(f,'input'); fireEvt(f,'keyup'); }
+        },30);
+      },0);
+    }
+
+    function goProject(name){
+      ['projSel','pySel','execProjSel2'].forEach(function(id){
+        var e=$(id); if(!e) return;
+        var has=false;
+        for(var i=0;i<e.options.length;i++) if(e.options[i].value===name){ has=true; break; }
+        e.value = has ? name : '__ALL__';
+        fireEvt(e,'change');
+      });
+      proxyClick('modExec');
+    }
+
+    function goChangeRow(row){
+      goProjectSilently(row.project);
+      proxyClick('tabCM');
+      setTimeout(function(){ var n=document.querySelector('.navitem[data-view="register"]'); if(n) n.click(); },0);
+    }
+    function goProjectSilently(name){
+      var e=$('projSel'); if(!e) return;
+      var has=false;
+      for(var i=0;i<e.options.length;i++) if(e.options[i].value===name){ has=true; break; }
+      e.value = has ? name : '__ALL__';
+      fireEvt(e,'change');
+    }
+
+    function goVendor(vname){
+      proxyClick('tabPAY');
+      setTimeout(function(){
+        var e=$('pyVend'); if(!e) return;
+        var has=false;
+        for(var i=0;i<e.options.length;i++) if(e.options[i].text===vname||e.options[i].value===vname){ e.selectedIndex=i; has=true; break; }
+        if(has) fireEvt(e,'change');
+        var t=$('pyVendTbl'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});
+      },0);
+    }
+
+    function buildIndex(q){
+      var out=[];
+      q=q.toLowerCase();
+
+      /* Projects */
+      if(typeof PROJECTS!=='undefined'){
+        PROJECTS.forEach(function(p){
+          if(p.nm && p.nm.toLowerCase().indexOf(q)>=0){
+            out.push({grp:'Projects',label:p.nm,sub:p.de||'',rawSub:true,action:function(){ goProject(p.nm); }});
+          }
+        });
+      }
+
+      /* Change Management log */
+      if(typeof ALL!=='undefined'){
+        var n=0;
+        for(var i=0;i<ALL.length && n<8;i++){
+          var r=ALL[i];
+          var hay=((r.logId||'')+' '+(r.desc||'')+' '+(r.project||'')).toLowerCase();
+          if(hay.indexOf(q)>=0){
+            n++;
+            (function(row){
+              out.push({grp:'Change Management',label:(row.logId||'(no log id)')+' — '+(row.desc||'').slice(0,60),sub:row.project||'', action:function(){ goChangeRow(row); }});
+            })(r);
+          }
+        }
+      }
+
+      /* Payments — vendors */
+      if(typeof PAYROWS!=='undefined'){
+        var seen={}, n2=0;
+        for(var j=0;j<PAYROWS.length && n2<8;j++){
+          var pr=PAYROWS[j];
+          var vn=pr._vname||pr.vend||'';
+          if(!vn || seen[vn]) continue;
+          if(vn.toLowerCase().indexOf(q)>=0){
+            seen[vn]=1; n2++;
+            (function(vname){
+              out.push({grp:'Vendors',label:vname,sub:'Payments',action:function(){ goVendor(vname); }});
+            })(vn);
+          }
+        }
+      }
+
+      /* QS Cost Control — item library */
+      if(typeof RA!=='undefined' && RA && RA.items){
+        var n3=0;
+        for(var k=0;k<RA.items.length && n3<6;k++){
+          var it=RA.items[k];
+          var hay2=((it.code||'')+' '+(it.desc||'')).toLowerCase();
+          if(hay2.indexOf(q)>=0){
+            n3++;
+            (function(item){
+              out.push({grp:'QS Cost Control — Item Library',label:(item.code?item.code+' — ':'')+item.desc,sub:item.unit||'',action:function(){ openRA('lib','raQ',item.desc||item.code||''); }});
+            })(it);
+          }
+        }
+      }
+
+      /* QS Cost Control — rate database */
+      if(typeof RA!=='undefined' && RA && RA.rates){
+        var n4=0;
+        for(var m=0;m<RA.rates.length && n4<6;m++){
+          var rt=RA.rates[m];
+          var hay3=((rt.code||'')+' '+(rt.name||'')).toLowerCase();
+          if(hay3.indexOf(q)>=0){
+            n4++;
+            (function(rate){
+              out.push({grp:'QS Cost Control — Rate Database',label:(rate.code?rate.code+' — ':'')+rate.name,sub:rate.unit||'',action:function(){ openRA('mat','raMQ',rate.name||rate.code||''); }});
+            })(rt);
+          }
+        }
+      }
+
+      return out.slice(0,40);
+    }
+
+    function render(list){
+      if(!list.length){ results.innerHTML='<div class="gs-empty">No matches.</div>'; results.classList.add('on'); return; }
+      var groups={}, order=[];
+      list.forEach(function(item){
+        if(!groups[item.grp]){ groups[item.grp]=[]; order.push(item.grp); }
+        groups[item.grp].push(item);
+      });
+      var html='';
+      order.forEach(function(g){
+        html+='<div class="gs-grp">'+esc(g)+'</div>';
+        groups[g].forEach(function(item,idx){
+          html+='<div class="gs-row" data-gidx="'+g+'|'+idx+'"><span class="nm"><b>'+esc(item.label)+'</b>'+(item.sub?' &middot; '+(item.rawSub?item.sub:esc(item.sub)):'')+'</span><span class="tag2">Open &rarr;</span></div>';
+        });
+      });
+      results.innerHTML=html;
+      results.classList.add('on');
+      window.__gsGroups=groups;
+      results.querySelectorAll('[data-gidx]').forEach(function(row){
+        row.addEventListener('click', function(){
+          var parts=row.dataset.gidx.split('|');
+          var g=parts[0], idx=parseInt(parts.slice(1).join('|'),10);
+          var item=window.__gsGroups[g][idx];
+          if(item && item.action) item.action();
+          results.classList.remove('on');
+          input.value='';
+        });
+      });
+    }
+
+    var t=null;
+    input.addEventListener('input', function(){
+      var q=input.value.trim();
+      clearTimeout(t);
+      if(q.length<2){ results.classList.remove('on'); return; }
+      t=setTimeout(function(){ render(buildIndex(q)); }, 150);
+    });
+    input.addEventListener('focus', function(){ if(input.value.trim().length>=2) results.classList.add('on'); });
+    document.addEventListener('click', function(e){
+      if(!wrap.contains(e.target)) results.classList.remove('on');
+    });
+  }
+
+  /* =============================== AGEING BANDS =============================== */
+  function renderAgeingBands(){
+    var box=$('ageingBandsBody');
+    if(!box) return;
+    var view=$('v-time');
+    if(!view || !view.classList.contains('on')) return;
+    if(typeof ALL==='undefined') return;
+    var bands=[
+      {label:'0–7 Days', min:0, max:7, cls:'b0'},
+      {label:'8–15 Days', min:8, max:15, cls:'b1'},
+      {label:'16–30 Days', min:16, max:30, cls:'b2'},
+      {label:'31–60 Days', min:31, max:60, cls:'b3'},
+      {label:'60+ Days', min:61, max:Infinity, cls:'b4'}
+    ];
+    var counts=[0,0,0,0,0];
+    ALL.forEach(function(r){
+      var st=(r.status||'').toLowerCase();
+      if(st==='approved'||st==='rejected'||st==='closed'||st==='withdrawn') return;
+      var age=parseFloat(r.open);
+      if(isNaN(age)) return;
+      for(var i=0;i<bands.length;i++){
+        if(age>=bands[i].min && age<=bands[i].max){ counts[i]++; break; }
+      }
+    });
+    box.innerHTML='<div class="agebands">'+bands.map(function(b,i){
+      return '<div class="ageband '+b.cls+'"><h6>'+esc(b.label)+'</h6><div class="v">'+counts[i]+'</div></div>';
+    }).join('')+'</div>';
+  }
+
+  document.querySelectorAll('.navitem[data-view="time"]').forEach(function(el){
+    el.addEventListener('click', function(){ setTimeout(renderAgeingBands, 60); });
+  });
+  setInterval(function(){
+    var view=$('v-time');
+    if(view && view.classList.contains('on')) renderAgeingBands();
+  }, 5000);
 
 })();
 </script>
