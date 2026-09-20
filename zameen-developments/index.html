@@ -74,6 +74,34 @@
 .exec-mcard .row2 b{color:var(--head)}
 .exec-mcard .cta{margin-top:9px;font-size:10.5px;font-weight:700;color:var(--blue)}
 .exec-note{background:#eaf1fb;border:1px solid #bfd6f5;border-radius:8px;padding:11px 14px;font-size:11.5px;color:#1b4d8f;line-height:1.55;margin-bottom:14px}
+.exec-kgrid.compact{grid-template-columns:repeat(6,minmax(0,1fr));margin-bottom:14px}
+.exec-kgrid.compact .exec-k{padding:9px 11px 8px;border-top-width:2px}
+.exec-kgrid.compact .exec-k h6{margin-bottom:5px}
+.exec-kgrid.compact .exec-k .v{font-size:16px}
+.pf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:14px;align-items:stretch}
+.pf-card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;box-shadow:0 1px 3px rgba(15,41,66,.07);transition:box-shadow .15s,border-color .15s;display:flex;flex-direction:column;cursor:pointer}
+.pf-card:hover{border-color:#c9d6e4;box-shadow:0 8px 20px rgba(15,41,66,.12)}
+.pf-top{display:flex;align-items:center;gap:12px;padding:16px 16px 14px;border-bottom:1px solid #eef2f7}
+.pf-top .pmark{border-color:var(--line)}
+.pf-id{min-width:0}
+.pf-nm{font-size:16px;font-weight:800;color:var(--head);line-height:1.25;letter-spacing:.1px}
+.pf-de{font-size:10.5px;color:var(--muted);margin-top:3px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pf-hero{display:grid;grid-template-columns:1fr 1.2fr 1fr;background:#f7f9fc;border-bottom:1px solid #eef2f7}
+.pf-heroitem{text-align:center;padding:12px 5px;border-right:1px solid #e5eaf1;min-width:0}
+.pf-heroitem:last-child{border-right:0}
+.pf-heroitem span{display:block;font-size:12px;font-weight:800;color:var(--head);line-height:1.3;word-break:break-word}
+.pf-heroitem label{display:block;font-size:8px;letter-spacing:.4px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px}
+.pf-heroitem.pf-hero-main{background:#fdf9ef}
+.pf-heroitem.pf-hero-main span{font-size:13.5px;color:#8a6a1f}
+.pf-body{display:grid;grid-template-columns:1fr 1fr;padding:2px 16px 4px;flex:1}
+.pf-cell{padding:9px 12px 9px 0;border-bottom:1px solid #f2f5f9;min-width:0}
+.pf-cell:nth-child(odd){border-right:1px solid #f2f5f9;padding-right:12px}
+.pf-cell:nth-child(even){padding-left:12px}
+.pf-cell:nth-last-child(-n+2){border-bottom:0}
+.pf-cell .vv{font-size:12px;font-weight:800;color:var(--head);line-height:1.3;word-break:break-word}
+.pf-cell .lb{font-size:9px;color:var(--muted);font-weight:700;margin-top:3px;text-transform:uppercase;letter-spacing:.3px}
+@media(max-width:900px){.pf-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:700px){.pf-grid{grid-template-columns:1fr}.exec-kgrid.compact{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .admcard{background:#fff;border:1px solid var(--line);border-radius:9px;margin-bottom:14px;overflow:hidden}
 .admcard>.hd{background:var(--admin-charcoal);color:#fff;padding:10px 15px;font-size:12.5px;font-weight:700;letter-spacing:.3px}
 .admcard>.bd{padding:14px 15px}
@@ -1118,14 +1146,78 @@ body[data-mod="cm"]{--head:#17375e}
     return '<div class="exec-k"><h6>'+esc(label)+'</h6><div class="v">'+esc(value||'—')+'</div>'+(sub?'<div class="p">'+esc(sub)+'</div>':'')+'</div>';
   }
 
-  function execKpisHtml(){
+  function safeSub(id){ return txt(id); }
+
+  /* ---- Project Portfolio: per-project financials derived from the real global data
+     (ALL = Change Management log rows, detailFor()/PDETAIL = Project Details sheet) ---- */
+  function pkrAbbrev(n){
+    if(n==null || isNaN(n)) return null;
+    var abs=Math.abs(n);
+    if(abs>=1e9) return (abs/1e9).toFixed(2)+'B';
+    if(abs>=1e6) return (abs/1e6).toFixed(2)+'M';
+    if(abs>=1e3) return (abs/1e3).toFixed(1)+'K';
+    return Math.round(abs).toLocaleString('en-PK');
+  }
+  function pkr(n){ return n==null ? '—' : 'PKR '+pkrAbbrev(n); }
+  function pkrSigned(n){ if(n==null) return '—'; var sign=n>0?'+':n<0?'-':''; return sign+'PKR '+pkrAbbrev(n); }
+  function sftFull(n){ return n==null ? '—' : Math.round(n).toLocaleString('en-PK')+' Sft'; }
+  function rateFull(n){ return n==null ? '—' : 'PKR '+Math.round(n).toLocaleString('en-PK')+'/Sft'; }
+
+  function projectFinancials(name){
+    var rows = (typeof ALL!=='undefined' && ALL) ? ALL.filter(function(r){ return r.project===name; }) : [];
+    var varCost=0, schedDays=0, approved=0, pending=0;
+    rows.forEach(function(r){
+      if(r.cost && r.cost.n!=null) varCost += r.cost.n;
+      if(r.sch && r.sch.n!=null) schedDays += r.sch.n;
+      if(r.status==='Approved') approved++;
+      else if(r.status==='Pending') pending++;
+    });
+    var det = (typeof detailFor==='function') ? detailFor(name) : null;
+    var origCost = (det && det.cost!=null) ? det.cost : null;
+    var area = (det && det.area!=null && det.area>0) ? det.area : null;
+    var rate = (det && det.rate!=null) ? det.rate : ((origCost!=null && area) ? origCost/area : null);
+    var revCost = origCost!=null ? origCost+varCost : null;
+    var revRate = (revCost!=null && area) ? revCost/area : null;
+    var util = origCost ? (revCost/origCost*100) : null;
+    var varPct = origCost ? (varCost/origCost*100) : null;
+    var compDate = (det && det.comp && det.comp.d) ? det.comp.d : null;
+    var remain = (compDate && typeof days==='function' && typeof TODAY!=='undefined') ? days(TODAY, compDate) : null;
+    return {
+      logCount:rows.length, varCost:varCost, schedDays:schedDays, approved:approved, pending:pending,
+      origCost:origCost, area:area, rate:rate, revCost:revCost, revRate:revRate, util:util, varPct:varPct,
+      remain:remain, dur:det?det.dur:null, rem:det?det.rem:''
+    };
+  }
+
+  function portfolioAggregate(names){
+    var totalArea=0, totalCost=0, totalVar=0, haveArea=false, haveCost=false;
+    names.forEach(function(nm){
+      var f=projectFinancials(nm);
+      if(f.area!=null){ totalArea+=f.area; haveArea=true; }
+      if(f.origCost!=null){ totalCost+=f.origCost; haveCost=true; }
+      totalVar += f.varCost||0;
+    });
+    var totalRev = haveCost ? totalCost+totalVar : null;
+    var avgRate = (haveCost && haveArea && totalArea>0) ? totalCost/totalArea : null;
+    return { totalArea:haveArea?totalArea:null, totalCost:haveCost?totalCost:null, totalVar:totalVar, totalRev:totalRev, avgRate:avgRate };
+  }
+
+  function execPrimaryKpisHtml(names){
+    var agg=portfolioAggregate(names);
+    var varPct = agg.totalCost ? (agg.totalVar/agg.totalCost*100) : null;
     var cards=[
-      ['Total Projects', String(projectOptionList('projSel').length), 'active in the change log'],
-      ['Original Cost', txt('pOrig'), 'from Project Details'],
-      ['Forecast / Revised Cost', txt('pRev'), safeSub('pRevSub')],
-      ['Cost Variance', txt('pVar'), safeSub('pVarSub')],
-      ['Cost / Sft (Original)', txt('pORate'), ''],
-      ['Cost / Sft (Revised)', txt('pRRate'), safeSub('pRRateSub')],
+      ['Total Projects', String(names.length), 'active in the change log'],
+      ['Total Portfolio Area', agg.totalArea!=null?sftFull(agg.totalArea):'—', 'from Project Details'],
+      ['Total Budget', pkr(agg.totalCost), 'original contract sum'],
+      ['Avg. Cost / Sft', agg.avgRate!=null?rateFull(agg.avgRate):'—', 'original'],
+      ['Revised Budget', agg.totalRev!=null?pkr(agg.totalRev):'—', 'original + variations to date'],
+      ['Overall Variance', pkrSigned(agg.totalVar), varPct!=null?(varPct>=0?'+':'')+varPct.toFixed(2)+'% of contract sum':'net cost impact']
+    ];
+    return '<div class="exec-kgrid">'+cards.map(function(c){ return kpiCard(c[0],c[1],c[2]); }).join('')+'</div>';
+  }
+
+  function execSecondaryKpisHtml(){
+    var cards=[
       ['Change Requests', txt('kTotal'), 'total logged'],
       ['Approved Changes', txt('kApp'), ''],
       ['Pending Changes', txt('kPend'), ''],
@@ -1133,10 +1225,53 @@ body[data-mod="cm"]{--head:#17375e}
       ['Schedule Impact (days)', txt('kDays'), ''],
       ['Total Payments Made', txt('pyPaid')||'open Payments module', safeSub('pyPaidS')]
     ];
-    return '<div class="exec-kgrid">'+cards.map(function(c){ return kpiCard(c[0],c[1],c[2]); }).join('')+'</div>';
+    return '<div class="exec-kgrid compact">'+cards.map(function(c){ return kpiCard(c[0],c[1],c[2]); }).join('')+'</div>';
   }
 
-  function safeSub(id){ return txt(id); }
+  function pfCell(label, value, color){
+    return '<div class="pf-cell"><div class="vv"'+(color?' style="color:'+color+'"':'')+'>'+value+'</div><div class="lb">'+esc(label)+'</div></div>';
+  }
+
+  function projectCardHtml(name){
+    var pinfo=(typeof projectInfo==='function') ? projectInfo(name) : {nm:name,de:''};
+    var f=projectFinancials(name);
+    var markHtml=(typeof mark==='function') ? mark(name,'lg') : '';
+    var utilColor = f.util==null ? '' : (f.util<=100 ? 'var(--green)' : f.util<=105 ? 'var(--amber)' : 'var(--red)');
+    var varColor = f.varCost>0 ? 'var(--amber)' : f.varCost<0 ? 'var(--green)' : 'var(--head)';
+    var schedText, schedColor;
+    if(f.remain==null){
+      schedText = f.dur!=null ? (Math.round(f.dur).toLocaleString('en-PK')+' Days contract') : 'not set';
+      schedColor='';
+    } else if(f.remain>=0){
+      schedText = f.remain.toLocaleString('en-PK')+' Days remaining';
+      schedColor='var(--green)';
+    } else {
+      schedText = Math.abs(f.remain).toLocaleString('en-PK')+' Days overdue';
+      schedColor='var(--red)';
+    }
+    return ''
+      +'<div class="pf-card" data-proj="'+esc(name)+'">'
+        +'<div class="pf-top">'+markHtml+'<div class="pf-id"><div class="pf-nm">'+esc(pinfo.nm||name)+'</div><div class="pf-de">'+(pinfo.de?pinfo.de:esc(name))+'</div></div></div>'
+        +'<div class="pf-hero">'
+          +'<div class="pf-heroitem"><span>'+(f.area!=null?sftFull(f.area):'—')+'</span><label>Covered Area</label></div>'
+          +'<div class="pf-heroitem pf-hero-main"><span>'+(f.origCost!=null?pkr(f.origCost):'—')+'</span><label>Total Budget</label></div>'
+          +'<div class="pf-heroitem"><span>'+(f.rate!=null?rateFull(f.rate):'—')+'</span><label>Cost / Sft</label></div>'
+        +'</div>'
+        +'<div class="pf-body">'
+          +pfCell('Revised Budget', f.revCost!=null?pkr(f.revCost):'not set')
+          +pfCell('Cost / Sft (Revised)', f.revRate!=null?rateFull(f.revRate):'—')
+          +pfCell('Budget Utilization', f.util!=null?f.util.toFixed(1)+'%':'—', utilColor)
+          +pfCell('Cost Variance', f.origCost!=null?pkrSigned(f.varCost):'—', varColor)
+          +pfCell('Schedule', esc(schedText), schedColor)
+          +pfCell('Status / Remarks', f.rem?esc(f.rem):'not set')
+        +'</div>'
+      +'</div>';
+  }
+
+  function execPortfolioHtml(names){
+    if(!names.length) return '<div class="ea-empty" style="padding:20px">No projects found in the Change Management register yet.</div>';
+    return '<div class="pf-grid">'+names.map(projectCardHtml).join('')+'</div>';
+  }
 
   function alertRow(color,label,count,goFn){
     return '<div class="ea-row" data-go="1"><span class="dot3" style="background:'+color+'"></span><span class="lb">'+esc(label)+'</span><span class="n">'+esc(count)+'</span><span class="go">Open &rarr;</span></div>';
@@ -1185,6 +1320,10 @@ body[data-mod="cm"]{--head:#17375e}
     var wrap=$('appEXEC');
     if(!wrap || wrap.style.display==='none') return;
     execProjectOptions();
+    var list=projectOptionList('projSel');
+    var cur=$('projSel')?$('projSel').value:'__ALL__';
+    var scoped = (cur && cur!=='__ALL__' && list.indexOf(cur)>=0) ? [cur] : list;
+
     wrap.innerHTML = execHeaderHtml()
       + '<div class="execsel"><label style="font-weight:700;font-size:12.5px">Project:</label>'
       + '<select id="execProjSel2"></select>'
@@ -1192,15 +1331,16 @@ body[data-mod="cm"]{--head:#17375e}
       + '<span style="margin-left:auto;font-size:11px;color:var(--muted)">Portfolio KPIs, alerts and payment position update live from the Change Management, Payments and QS Cost Control modules.</span>'
       + '</div>'
       + '<div class="exec-sect">Portfolio KPIs</div>'
-      + execKpisHtml()
+      + execPrimaryKpisHtml(scoped)
+      + execSecondaryKpisHtml()
       + execAlertsHtml()
+      + '<div class="exec-sect">Project Portfolio'+(scoped.length!==list.length?' &mdash; '+esc(cur):'')+'</div>'
+      + execPortfolioHtml(scoped)
       + '<div class="exec-sect">Module Position</div>'
       + execModuleCardsHtml()
       + '<div class="exec-note"><b style="display:block;margin-bottom:3px">Feasibility figures</b>Land cost, revenue, profit and cost/Sft feasibility tracking are maintained in the linked Google Sheet workbook (see the Feasibility module) and are intentionally not re-typed or estimated here.</div>';
 
     var sel2=$('execProjSel2');
-    var list=projectOptionList('projSel');
-    var cur=$('projSel')?$('projSel').value:'__ALL__';
     sel2.innerHTML='<option value="__ALL__">ALL PROJECTS</option>'+list.map(function(p){return '<option value="'+esc(p)+'">'+esc(p)+'</option>';}).join('');
     sel2.value = list.indexOf(cur)>=0 ? cur : '__ALL__';
     sel2.addEventListener('change', function(){ syncGlobalProject(this.value); });
@@ -1212,6 +1352,10 @@ body[data-mod="cm"]{--head:#17375e}
         var idmap={cm:'tabCM',pay:'tabPAY',ra:'tabRA',feas:'tabFEAS'};
         proxyClick(idmap[m]);
       });
+    });
+
+    wrap.querySelectorAll('.pf-card[data-proj]').forEach(function(el){
+      el.addEventListener('click', function(){ syncGlobalProject(el.dataset.proj); });
     });
   }
   function execProjectOptions(){ /* no-op placeholder kept for clarity; select built in renderExec */ }
