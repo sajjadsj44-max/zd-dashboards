@@ -670,16 +670,40 @@ body[data-mod="cm"]{--head:#17375e}
     <span class="chip ok" id="projChip">Active</span>
     <span style="font-size:11.5px;color:var(--muted)" id="projMeta"></span>
     <div style="margin-left:auto;display:flex;gap:8px">
+      <button class="btn" id="cmKpiToggle">&#128065; Show cost details</button>
       <button class="btn" id="btnCsv">⭳ Export view (CSV)</button>
     </div>
   </div>
 
   <div class="pstrip" id="pStrip"></div>
+  <div id="pDetailWrap" class="cm-kpi-toggle-target">
   <div class="pdetail" id="pDetail" style="display:none"></div>
+  </div>
+  <script>
+  (function(){
+    var KEY='cmCostKpisHidden';
+    function apply(hidden){
+      document.querySelectorAll('.cm-kpi-toggle-target').forEach(function(e){ e.style.display = hidden ? 'none' : ''; });
+      var btn=document.getElementById('cmKpiToggle');
+      if(btn) btn.innerHTML = hidden ? '&#128065; Show cost details' : '&#128065;&#8203; Hide cost details';
+    }
+    var stored=localStorage.getItem(KEY);
+    var hidden = stored===null ? true : stored==='1';
+    if(stored===null) localStorage.setItem(KEY,'1');
+    document.addEventListener('DOMContentLoaded', function(){ apply(hidden); });
+    if(document.readyState!=='loading') apply(hidden);
+    document.getElementById('cmKpiToggle').addEventListener('click', function(){
+      hidden = document.getElementById('pDetailWrap').style.display !== 'none';
+      localStorage.setItem(KEY, hidden?'1':'0');
+      apply(hidden);
+    });
+  })();
+  </script>
 
-  
+
   <section class="view on" id="v-dash">
 
+    <div class="cm-kpi-toggle-target" id="costKpisWrap">
     <div class="costkpis" id="costKpis">
       <div class="ck">
         <h6>TOTAL PROJECT ORIGINAL COST</h6>
@@ -711,6 +735,7 @@ body[data-mod="cm"]{--head:#17375e}
         <div class="r"><div class="v" id="pRVar">—</div><div class="i">&#9650;</div></div>
         <div class="p" id="pRVarSub"></div>
       </div>
+    </div>
     </div>
 
     <div class="kpis">
