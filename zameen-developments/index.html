@@ -626,23 +626,73 @@ body[data-mod="cm"]{--head:#17375e}
       <div class="bar"></div>
       <div>
         <div class="co">ZAMEEN DEVELOPMENTS</div>
-        <h2>Feasibility Forecast Tracking</h2>
+        <h2>Feasibility Forecast Dashboard</h2>
       </div>
+    </div>
+    <div class="right">
+      <div class="pill">▤ <span id="feasStamp">—</span></div>
+      <button class="btn" id="feasRefreshBtn">↻ Refresh now</button>
+      <a class="btn" href="https://docs.google.com/spreadsheets/d/1IQUUOKMtf8cwL_jRwJ9uMGJY9WBf8KqFnYpU0mRL9Jk/edit" target="_blank" rel="noopener">&#8599; Open Feasibility Sheet</a>
+      <a class="btn" href="https://docs.google.com/spreadsheets/d/1aWxO9m51BD9TzsDgszx2UkJmO-Zq7Qsg4EKCLvXG_Os/edit" target="_blank" rel="noopener">&#8599; Open Payment Sheet</a>
     </div>
   </div>
 
-  <div class="racard" id="feasSheet1">
-    <div class="hd"><div><h3>Payment Control Sheet ZD</h3>
-      <div class="sub">Live Google Sheet &mdash; payment summary, feeding the Payment Summary dashboard tab.</div></div><div class="sp"></div>
-      <a class="rabtn sm" href="https://docs.google.com/spreadsheets/d/1aWxO9m51BD9TzsDgszx2UkJmO-Zq7Qsg4EKCLvXG_Os/edit" target="_blank" rel="noopener">&#8599; Open in Google Sheets</a></div>
-    <div class="bd flush"><iframe src="https://docs.google.com/spreadsheets/d/1aWxO9m51BD9TzsDgszx2UkJmO-Zq7Qsg4EKCLvXG_Os/preview" style="width:100%;height:640px;border:0" loading="lazy" title="Payment Control Sheet ZD"></iframe></div>
+  <div id="feasBanner"></div>
+  <div class="exec-kgrid" id="feasKpis"></div>
+
+  <div class="grid-27" style="grid-template-columns:1.3fr 1.7fr">
+    <div class="racard">
+      <div class="hd"><div><h3>Land Cost vs Revenue by Project</h3>
+        <div class="sub">Built only from columns actually found in the live sheet.</div></div></div>
+      <div class="bd" id="feasChartWrap" style="height:340px;position:relative"><canvas id="feasChart"></canvas></div>
+    </div>
+    <div class="racard">
+      <div class="hd"><div><h3>Project-wise Feasibility</h3>
+        <div class="sub" id="feasTblSub">Live data from the Projects Summary &amp; Feasibility Forecast sheet.</div></div></div>
+      <div class="bd flush"><div class="rascroll"><table class="ratbl" id="feasTbl"></table></div></div>
+    </div>
   </div>
-  <div class="racard" id="feasSheet2">
-    <div class="hd"><div><h3>Projects Summary &amp; Feasibility Forecast</h3>
-      <div class="sub">Live Google Sheet &mdash; project-wise forecast and feasibility tracking.</div></div><div class="sp"></div>
-      <a class="rabtn sm" href="https://docs.google.com/spreadsheets/d/1IQUUOKMtf8cwL_jRwJ9uMGJY9WBf8KqFnYpU0mRL9Jk/edit" target="_blank" rel="noopener">&#8599; Open in Google Sheets</a></div>
-    <div class="bd flush"><iframe src="https://docs.google.com/spreadsheets/d/1IQUUOKMtf8cwL_jRwJ9uMGJY9WBf8KqFnYpU0mRL9Jk/preview" style="width:100%;height:640px;border:0" loading="lazy" title="Projects Summary"></iframe></div>
+
+  <div class="racard">
+    <div class="hd"><div><h3>Raw Google Sheets</h3>
+      <div class="sub">Full source workbooks &mdash; narrative notes, formulas and anything not captured by the dashboard above live only here.</div></div>
+      <div class="sp"></div>
+      <button class="btn" id="feasRawToggle">&#128065; Show raw sheets</button></div>
+    <div class="bd flush feas-raw-toggle-target" id="feasRawWrap" style="display:none">
+      <div class="racard" id="feasSheet1" style="margin:13px;border-radius:8px">
+        <div class="hd"><div><h3>Payment Control Sheet ZD</h3>
+          <div class="sub">Live Google Sheet &mdash; payment summary, feeding the Payment Summary dashboard tab.</div></div><div class="sp"></div>
+          <a class="rabtn sm" href="https://docs.google.com/spreadsheets/d/1aWxO9m51BD9TzsDgszx2UkJmO-Zq7Qsg4EKCLvXG_Os/edit" target="_blank" rel="noopener">&#8599; Open in Google Sheets</a></div>
+        <div class="bd flush"><iframe src="https://docs.google.com/spreadsheets/d/1aWxO9m51BD9TzsDgszx2UkJmO-Zq7Qsg4EKCLvXG_Os/preview" style="width:100%;height:640px;border:0" loading="lazy" title="Payment Control Sheet ZD"></iframe></div>
+      </div>
+      <div class="racard" id="feasSheet2" style="margin:13px;border-radius:8px">
+        <div class="hd"><div><h3>Projects Summary &amp; Feasibility Forecast</h3>
+          <div class="sub">Live Google Sheet &mdash; project-wise forecast and feasibility tracking.</div></div><div class="sp"></div>
+          <a class="rabtn sm" href="https://docs.google.com/spreadsheets/d/1IQUUOKMtf8cwL_jRwJ9uMGJY9WBf8KqFnYpU0mRL9Jk/edit" target="_blank" rel="noopener">&#8599; Open in Google Sheets</a></div>
+        <div class="bd flush"><iframe src="https://docs.google.com/spreadsheets/d/1IQUUOKMtf8cwL_jRwJ9uMGJY9WBf8KqFnYpU0mRL9Jk/preview" style="width:100%;height:640px;border:0" loading="lazy" title="Projects Summary"></iframe></div>
+      </div>
+    </div>
   </div>
+  <script>
+  (function(){
+    var KEY='feasRawHidden';
+    function apply(hidden){
+      document.querySelectorAll('.feas-raw-toggle-target').forEach(function(e){ e.style.display = hidden ? 'none' : ''; });
+      var btn=document.getElementById('feasRawToggle');
+      if(btn) btn.innerHTML = hidden ? '&#128065; Show raw sheets' : '&#128065;&#8203; Hide raw sheets';
+    }
+    var stored=localStorage.getItem(KEY);
+    var hidden = stored===null ? true : stored==='1';
+    if(stored===null) localStorage.setItem(KEY,'1');
+    document.addEventListener('DOMContentLoaded', function(){ apply(hidden); });
+    if(document.readyState!=='loading') apply(hidden);
+    document.getElementById('feasRawToggle').addEventListener('click', function(){
+      hidden = document.getElementById('feasRawWrap').style.display !== 'none';
+      localStorage.setItem(KEY, hidden?'1':'0');
+      apply(hidden);
+    });
+  })();
+  </script>
 </div>
 
 <div id="appCM">
@@ -1335,6 +1385,280 @@ body[data-mod="cm"]{--head:#17375e}
   if(document.readyState==='complete') setTimeout(warmUpAndLand, 30);
   else window.addEventListener('load', function(){ setTimeout(warmUpAndLand, 30); });
 
+})();
+</script>
+<script>
+/* ===== Feasibility Dashboard — additive, does not modify any existing function/variable above =====
+   Renders KPI tiles, a chart and a per-project table for the Feasibility tab from LIVE data only.
+   It reuses the same JSONP/gviz technique, PD_SHEET_ID and fallback-probing pattern (SHEET3_CANDIDATES)
+   already used elsewhere in this file for "Projects Summary & Feasibility Forecast". Column headers are
+   matched flexibly/case-insensitively, mirroring the FIELDS pattern used by the Rate Analysis CSV importer.
+   HARD RULE: nothing here is hardcoded or estimated — any figure not found as a real column in the live
+   sheet is shown as "—" (or its tile is simply not computed), never guessed. */
+(function(){
+  function $(id){ return document.getElementById(id); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function S(v){ return String(v==null?'':v).trim(); }
+
+  /* Candidate tabs/gids to probe inside the Projects Summary & Feasibility Forecast workbook
+     (same PD_SHEET_ID already used elsewhere in this file for Project Details). */
+  var FEAS_CANDIDATES = (typeof PD_SHEET_ID!=='undefined') ? [
+    {sid:PD_SHEET_ID,gid:"0"},
+    {sid:PD_SHEET_ID,sheet:"Projects Summary"},
+    {sid:PD_SHEET_ID,sheet:"Feasibility Forecast"},
+    {sid:PD_SHEET_ID,sheet:"Feasibility"},
+    {sid:PD_SHEET_ID,sheet:"Summary"},
+    {sid:PD_SHEET_ID,sheet:"Sheet1"},
+    {sid:PD_SHEET_ID,gid:"1"},
+    {sid:PD_SHEET_ID,gid:"2"},
+    {sid:PD_SHEET_ID,gid:"3"}
+  ] : [];
+
+  /* Expected columns (any order, any wording, case-insensitive) — first regex that matches a header
+     cell wins that column; a column simply isn't captured if nothing in the header row matches it. */
+  var FEAS_COLS = [
+    {k:'proj',    re:[/^project\s*name$/i,/^project$/i,/^site$/i,/^development$/i,/^scheme$/i]},
+    {k:'land',    re:[/land\s*cost/i,/cost\s*of\s*land/i,/land\s*price/i,/land\s*value/i]},
+    {k:'revenue', re:[/total\s*revenue/i,/sale\s*value/i,/sales\s*value/i,/expected\s*revenue/i,/gross\s*sales/i,/\brevenue\b/i]},
+    {k:'profit',  re:[/net\s*profit/i,/^profit\b/i,/\bprofit\s*\(?pkr\)?/i,/\bmargin\s*\(?pkr\)?/i]},
+    {k:'costsft', re:[/cost\s*\/?\s*per\s*sft/i,/cost\s*\/?\s*sft/i,/rate\s*\/?\s*sft/i,/\/\s*sft\b/i]},
+    {k:'area',    re:[/covered\s*area/i,/total\s*area/i,/land\s*area/i,/\barea\b/i,/\bsft\b/i]},
+    {k:'cost',    re:[/construction\s*cost/i,/total\s*cost/i,/^cost$/i,/original.*cost/i,/development\s*cost/i]},
+    {k:'status',  re:[/^status$/i,/project\s*status/i,/feasibility\s*status/i,/^stage$/i]}
+  ];
+
+  function parseFeasNum(raw){
+    var t = S(raw);
+    if(!t) return null;
+    var neg = /^\(.*\)$/.test(t);
+    t = t.replace(/[()]/g,'').replace(/PKR|Rs\.?|₨/gi,'').replace(/,/g,'').trim();
+    if(!t || !/[0-9]/.test(t)) return null;
+    var v = parseFloat(t);
+    if(!isFinite(v)) return null;
+    return neg ? -v : v;
+  }
+
+  function parseFeasSheet(matrix){
+    var headerIdx=-1, mapped=null;
+    for(var r=0;r<Math.min(matrix.length,20);r++){
+      var row=matrix[r];
+      if(!row) continue;
+      var found={};
+      row.forEach(function(cell,ci){
+        var s=S(cell);
+        if(!s) return;
+        FEAS_COLS.forEach(function(col){
+          if(found[col.k]!=null) return;
+          if(col.re.some(function(re){ return re.test(s); })) found[col.k]=ci;
+        });
+      });
+      if(found.proj!=null && Object.keys(found).length>=2){ headerIdx=r; mapped=found; break; }
+    }
+    if(headerIdx<0) return null;
+    var rows=[];
+    for(var r2=headerIdx+1;r2<matrix.length;r2++){
+      var row2=matrix[r2]||[];
+      var nm=S(row2[mapped.proj]);
+      if(!nm || /^project(\s*name)?$/i.test(nm)) continue;
+      var rec={nm:nm};
+      ['land','revenue','profit','costsft','area','cost'].forEach(function(k){
+        if(mapped[k]==null) return;
+        rec[k]=parseFeasNum(row2[mapped[k]]);
+      });
+      if(mapped.status!=null) rec.status = S(row2[mapped.status]) || null;
+      rows.push(rec);
+    }
+    return {rows:rows, cols:mapped};
+  }
+
+  function fmtMoney(v){ return v==null ? '—' : 'PKR '+Math.round(v).toLocaleString('en-PK'); }
+  function fmtNum(v,d){ d=d||0; return v==null ? '—' : Number(v).toLocaleString('en-PK',{minimumFractionDigits:d,maximumFractionDigits:d}); }
+
+  var FEAS = {loading:false, loaded:false, error:null, rows:[], cols:null, ref:null, stamp:null, chart:null};
+
+  function feasTotals(){
+    var rows=FEAS.rows||[];
+    var has=function(k){ return rows.some(function(r){ return r[k]!=null; }); };
+    var sum=function(k){ return rows.reduce(function(a,r){ return a+(r[k]!=null?r[k]:0); },0); };
+    var out={n:rows.length};
+    if(has('land')) out.land=sum('land');
+    if(has('revenue')) out.revenue=sum('revenue');
+    if(has('profit')){
+      out.profit=sum('profit');
+    } else if(has('revenue') && (has('land')||has('cost'))){
+      var derived=0, cnt=0;
+      rows.forEach(function(r){
+        if(r.revenue==null) return;
+        if(r.land==null && r.cost==null) return;
+        derived += r.revenue - ((r.land||0)+(r.cost||0));
+        cnt++;
+      });
+      if(cnt>0){ out.profit=derived; out.profitDerived=true; }
+    }
+    if(out.revenue!=null && out.profit!=null && out.revenue!==0) out.margin = out.profit/out.revenue*100;
+    if(has('costsft')){
+      var vals=rows.filter(function(r){ return r.costsft!=null && r.costsft>0; });
+      if(vals.length) out.avgCostSft = vals.reduce(function(a,r){ return a+r.costsft; },0)/vals.length;
+    } else if(has('cost') && has('area')){
+      var totCost=0, totArea=0;
+      rows.forEach(function(r){ if(r.cost!=null && r.area){ totCost+=r.cost; totArea+=r.area; } });
+      if(totArea>0){ out.avgCostSft = totCost/totArea; out.avgCostSftDerived=true; }
+    }
+    return out;
+  }
+
+  function feasKpiCard(label,value,sub){
+    return '<div class="exec-k"><h6>'+esc(label)+'</h6><div class="v">'+esc(value||'—')+'</div>'+(sub?'<div class="p">'+esc(sub)+'</div>':'')+'</div>';
+  }
+
+  function renderFeasKpis(){
+    var t=feasTotals();
+    var cards=[
+      ['Total Projects', t.n?String(t.n):'—', ''],
+      ['Total Land Cost', fmtMoney(t.land), ''],
+      ['Total Revenue / Sale Value', fmtMoney(t.revenue), ''],
+      ['Total Profit', fmtMoney(t.profit), t.profitDerived?'derived: revenue − (land + cost)':''],
+      ['Profit Margin', t.margin!=null?t.margin.toFixed(1)+'%':'—', ''],
+      ['Avg Cost / Sft', t.avgCostSft!=null?('PKR '+fmtNum(t.avgCostSft,0)):'—', t.avgCostSftDerived?'derived: total cost ÷ total area':'']
+    ];
+    $('feasKpis').innerHTML = cards.map(function(c){ return feasKpiCard(c[0],c[1],c[2]); }).join('');
+  }
+
+  function killChart(){
+    if(FEAS.chart){ try{ FEAS.chart.destroy(); }catch(e){} FEAS.chart=null; }
+  }
+
+  function renderFeasChart(){
+    var wrap=$('feasChartWrap');
+    var rows=FEAS.rows||[];
+    var canvasHtml='<canvas id="feasChart"></canvas>';
+    killChart();
+    if(!rows.length || typeof Chart==='undefined'){
+      wrap.innerHTML='<div class="empty">'+(rows.length?'Chart library not available.':'No project rows parsed yet.')+'</div>';
+      return;
+    }
+    var hasLand=rows.some(function(r){return r.land!=null;});
+    var hasRev=rows.some(function(r){return r.revenue!=null;});
+    var hasProfit=rows.some(function(r){return r.profit!=null;});
+    var hasCostSft=rows.some(function(r){return r.costsft!=null;});
+    var labels=rows.map(function(r){ return r.nm; });
+    var datasets=[];
+    if(hasLand||hasRev){
+      if(hasLand) datasets.push({label:'Land Cost',data:rows.map(function(r){return r.land;}),backgroundColor:'#2b7de9',borderRadius:3,maxBarThickness:28});
+      if(hasRev) datasets.push({label:'Revenue / Sale Value',data:rows.map(function(r){return r.revenue;}),backgroundColor:'#22a04a',borderRadius:3,maxBarThickness:28});
+      if(hasProfit) datasets.push({label:'Profit',data:rows.map(function(r){return r.profit;}),backgroundColor:'#6b4bd8',borderRadius:3,maxBarThickness:28});
+    } else if(hasProfit){
+      datasets.push({label:'Profit',data:rows.map(function(r){return r.profit;}),backgroundColor:rows.map(function(r){return r.profit<0?'#e14b4b':'#22a04a';}),borderRadius:3,maxBarThickness:32});
+    } else if(hasCostSft){
+      datasets.push({label:'Cost / Sft',data:rows.map(function(r){return r.costsft;}),backgroundColor:'#f5a623',borderRadius:3,maxBarThickness:32});
+    } else {
+      wrap.innerHTML='<div class="empty">None of Land Cost, Revenue, Profit or Cost/Sft columns were found in the live sheet, so no chart can be drawn from real data.</div>';
+      return;
+    }
+    wrap.innerHTML=canvasHtml;
+    FEAS.chart = new Chart($('feasChart'), {
+      type:'bar',
+      data:{labels:labels, datasets:datasets},
+      options:{
+        maintainAspectRatio:false, responsive:true,
+        plugins:{legend:{position:'top', labels:{boxWidth:11, font:{size:10}}}, tooltip:{callbacks:{label:function(ctx){ return ctx.dataset.label+': PKR '+fmtNum(ctx.parsed.y,0); }}}},
+        scales:{y:{beginAtZero:true, ticks:{callback:function(v){ return fmtNum(v,0); }}, grid:{color:'#eef2f7'}}, x:{grid:{display:false}}}
+      }
+    });
+  }
+
+  function renderFeasTable(){
+    var rows=FEAS.rows||[];
+    var cols=FEAS.cols||{};
+    var colDefs=[
+      ['land','Land Cost', function(r){return fmtMoney(r.land);}],
+      ['revenue','Revenue / Sale Value', function(r){return fmtMoney(r.revenue);}],
+      ['profit','Profit', function(r){return fmtMoney(r.profit);}],
+      ['costsft','Cost / Sft', function(r){return r.costsft!=null?('PKR '+fmtNum(r.costsft,0)):'—';}],
+      ['area','Area (Sft)', function(r){return r.area!=null?(fmtNum(r.area,0)+' Sft'):'—';}],
+      ['status','Status', function(r){return r.status?esc(r.status):'—';}]
+    ].filter(function(c){ return cols[c[0]]!=null; });
+
+    if(!rows.length){
+      $('feasTbl').innerHTML='<thead><tr><th>Project</th></tr></thead><tbody><tr><td class="empty">No rows parsed from the live sheet yet.</td></tr></tbody>';
+      return;
+    }
+    var thead='<thead><tr><th>Project</th>'+colDefs.map(function(c){ return '<th class="n">'+esc(c[1])+'</th>'; }).join('')+'</tr></thead>';
+    var tbody='<tbody>'+rows.map(function(r){
+      return '<tr><td><b>'+esc(r.nm)+'</b></td>'+colDefs.map(function(c){
+        var cls = c[0]==='status' ? '' : ' class="n"';
+        return '<td'+cls+'>'+c[2](r)+'</td>';
+      }).join('')+'</tr>';
+    }).join('')+'</tbody>';
+    $('feasTbl').innerHTML=thead+tbody;
+  }
+
+  function renderFeasBanner(){
+    var el=$('feasBanner');
+    if(FEAS.loading && !FEAS.loaded){
+      el.innerHTML='<div class="rainfo">Loading live figures from the Projects Summary &amp; Feasibility Forecast sheet&hellip;</div>';
+    } else if(FEAS.error){
+      el.innerHTML='<div class="rawarn"><b style="display:block;margin-bottom:3px">Could not read live figures</b>'+esc(FEAS.error)+' Use "Open Feasibility Sheet" above, or expand "Show raw sheets" below, to view the data directly.</div>';
+    } else if(FEAS.loaded && !FEAS.rows.length){
+      el.innerHTML='<div class="rawarn">The sheet was reached but no project rows with a recognisable Project column were found. Figures below stay blank rather than being guessed.</div>';
+    } else {
+      el.innerHTML='';
+    }
+  }
+
+  function renderFeasDash(){
+    if(!$('feasKpis')) return;
+    renderFeasBanner();
+    renderFeasKpis();
+    renderFeasChart();
+    renderFeasTable();
+    var st=$('feasStamp');
+    if(st) st.textContent = FEAS.stamp ? ('Updated '+FEAS.stamp.toLocaleTimeString('en-GB')) : (FEAS.loading?'Loading…':'—');
+  }
+
+  async function loadFeas(){
+    if(FEAS.loading) return;
+    if(typeof loadJSONP!=='function' || typeof jsonToMatrix!=='function' || !FEAS_CANDIDATES.length){
+      FEAS.error='This build has no live-sheet reader available.';
+      renderFeasDash();
+      return;
+    }
+    FEAS.loading=true; FEAS.error=null;
+    renderFeasDash();
+    var candidates = FEAS.ref ? [FEAS.ref].concat(FEAS_CANDIDATES) : FEAS_CANDIDATES;
+    for(var i=0;i<candidates.length;i++){
+      try{
+        var json = await loadJSONP(candidates[i]);
+        var matrix = jsonToMatrix(json);
+        var parsed = parseFeasSheet(matrix);
+        if(parsed && parsed.rows.length){
+          FEAS.ref=candidates[i];
+          FEAS.rows=parsed.rows;
+          FEAS.cols=parsed.cols;
+          FEAS.loaded=true; FEAS.loading=false; FEAS.error=null;
+          FEAS.stamp=new Date();
+          renderFeasDash();
+          return;
+        }
+      }catch(e){ /* try next candidate tab/gid */ }
+    }
+    FEAS.loading=false; FEAS.loaded=true;
+    if(!FEAS.rows.length){
+      FEAS.error='None of the probed tabs/gids in the workbook yielded a header row with a Project column plus at least one recognised figure column. Check the sheet is shared as "Anyone with the link · Viewer".';
+    }
+    renderFeasDash();
+  }
+
+  var feasStarted=false;
+  var tabFeasBtn=$('tabFEAS');
+  if(tabFeasBtn){
+    tabFeasBtn.addEventListener('click', function(){
+      if(!feasStarted){ feasStarted=true; loadFeas(); }
+      else renderFeasDash();
+    });
+  }
+  var refreshBtn=$('feasRefreshBtn');
+  if(refreshBtn) refreshBtn.addEventListener('click', function(){ loadFeas(); });
 })();
 </script>
 <script>
