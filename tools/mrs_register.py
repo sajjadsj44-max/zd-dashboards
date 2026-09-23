@@ -44,6 +44,7 @@ BLOCK_RE = re.compile(r'(<script type="application/json" id="raMrsData">)(.*?)(<
 DEFAULT_CHAPTERS = "2-13,19,25,26"
 
 CWT_KG = 50.80234544          # 1 long hundredweight (112 lb)
+LONG_TON_KG = 1016.0469088    # MRS British "Ton" is the long ton (its metric twin is per tonne)
 MAUND_KG = 37.3242            # 1 maund (40 seer)
 ROMAN = {"i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x",
          "xi", "xii", "xiii", "xiv", "xv", "xvi", "xvii", "xviii", "xix", "xx"}
@@ -83,10 +84,11 @@ def text_of(words, numeric=False):
     return re.sub(r"(?<=[\d,.\-])\s+(?=[,.\d])", "", t).strip()
 
 
-def header_bins(rows):
-    """Column bins from the page's own header lines:
+def header_cols(rows):
+    """Column extents from the page's own header lines:
     'Sr. Description Rate (British System) Rate (Metric System) Spec. Remarks'
-    then 'Unit (of M/ment) Labour Composite' twice (British, metric)."""
+    then 'Unit (of M/ment) Labour Composite' twice (British, metric).
+    Returns ([(name, left, right)], header bottom, right edge of the description column)."""
     h1 = h_unit = h_lc = None
     for r in rows:
         t = [w["text"] for w in r]
@@ -101,43 +103,83 @@ def header_bins(rows):
         elif h_unit is None and "Unit" in t:
             h_unit = r
     if not h1 or not h_lc:
-        return None, None
-    xs = lambda row, word: [w["x0"] for w in (row or []) if w["text"] == word]
-    unit, lab, comp = xs(h_unit, "Unit") or xs(h_lc, "M/ment"), xs(h_lc, "Labour"), xs(h_lc, "Composite")
-    spec, rem = xs(h1, "Spec."), xs(h1, "Remarks")
+        return None, None, None
+    ext = lambda row, word: [(w["x0"], w["x1"]) for w in sorted(row or [], key=lambda w: w["x0"]) if w["text"] == word]
+    lab, comp = ext(h_lc, "Labour"), ext(h_lc, "Composite")
+    spec, rem = ext(h1, "Spec."), ext(h1, "Remarks")
+    unit = [x0 for x0, _ in (ext(h_unit, "Unit") or ext(h_lc, "M/ment"))]
     if len(unit) == 1 and len(lab) >= 2 and comp:
         # some chapters print no "Unit" heading over the metric unit column; it sits
         # a little past halfway between the British composite and metric labour columns
-        unit.append(comp[0] + 0.55 * (lab[1] - comp[0]))
+        unit.append(comp[0][0] + 0.55 * (lab[1][0] - comp[0][0]))
     if len(unit) < 2 or len(lab) < 2 or len(comp) < 2 or not spec or not rem:
-        return None, None
-    anchors = [("unit1", unit[0]), ("lab1", lab[0]), ("comp1", comp[0]),
-               ("unit2", unit[1]), ("lab2", lab[1]), ("comp2", comp[1]),
-               ("spec", spec[0]), ("rem", rem[0])]
-    bins = [("sr", 0, 30), ("desc", 30, anchors[0][1] - 15)]
-    for i, (name, x) in enumerate(anchors):
-        left = x - 15 if i == 0 else (anchors[i - 1][1] + x) / 2
-        right = (x + anchors[i + 1][1]) / 2 if i + 1 < len(anchors) else 1e9
-        bins.append((name, left, right))
-    return bins, h_lc[0]["top"]
+        return None, None, None
+    head = [w for row in (h_unit or [], h_lc) for w in row]
+
+    def unit_ext(x):   # "Unit" / "of" / "M/ment" stacked over one column
+        right = [w["x1"] for w in head if w["text"] in ("Unit", "of", "M/ment") and x - 6 <= w["x0"] <= x + 30]
+        return (x, max(right) if right else x + 25)
+
+    cols = [("unit1", *unit_ext(unit[0])), ("lab1", *lab[0]), ("comp1", *comp[0]),
+            ("unit2", *unit_ext(unit[1])), ("lab2", *lab[1]), ("comp2", *comp[1]),
+            ("spec", *spec[0]), ("rem", *rem[0])]
+    return cols, h_lc[0]["top"], unit[0] - 15
 
 
-def page_rows(page, pno):
+NUMERIC = re.compile(r"^[\d,.\-–—]+$")
+FOOTER = re.compile(r"^chap(ter)?\s*-?\s*\d", re.I)
+
+
+def join_fragments(words):
+    """The PDF sets many figures as touching fragments ("6" ".25", "1" "5.30",
+    "6" ",090.50"); glue them back so a figure is never split between columns."""
+    out = []
+    for w in sorted(words, key=lambda w: w["x0"]):
+        p = out[-1] if out else None
+        if p and re.search(r"\d$", p["text"]) and re.match(r"^[.,]?\d", w["text"]) and w["x0"] - p["x1"] <= 1.0:
+            out[-1] = dict(p, text=p["text"] + w["text"], x1=w["x1"])
+        else:
+            out.append(dict(w))
+    return out
+
+
+def page_rows(page, pno, warn=None):
     words = page.extract_words(use_text_flow=False, keep_blank_chars=False)
     rows = row_groups(words)
-    bins, hdr_top = header_bins(rows)
-    if not bins:
+    cols, hdr_top, desc_right = header_cols(rows)
+    if not cols:
         return []
+    # text is left-aligned under its heading and only ever belongs to a text column (unit,
+    # spec, remarks); figures are right-aligned, so they go to the column whose heading ends
+    # nearest their right edge
+    text_cols = [c for c in cols if c[0] in ("unit1", "unit2", "spec", "rem")]
+
+    def text_col(x0):
+        # distance from the column's heading span; a word far from every text column
+        # (a full-width banner such as "BARBED WIRE FENCING") belongs to none of them
+        dist = lambda c: max(c[1] - 12 - x0, 0, x0 - c[2]) if c[0] != "rem" else max(c[1] - 12 - x0, 0)
+        best = min(text_cols, key=lambda c: (dist(c), c[1]))
+        return best[0] if dist(best) <= 15 else None
     out = []
     for r in rows:
         if r[0]["top"] <= hdr_top + 2:
             continue
-        col = {name: [] for name, _, _ in bins}
-        for w in r:
-            for name, left, right in bins:
-                if left <= w["x0"] < right:
-                    col[name].append(w)
-                    break
+        if any(FOOTER.match(w["text"]) for w in r) and all(w["x0"] >= desc_right for w in r):
+            continue                                  # page footer "Chap-6 (Concrete) ... Page 38"
+        col = {name: [] for name in ["sr", "desc"] + [c[0] for c in cols]}
+        left_words = [w for w in r if w["x0"] < desc_right]
+        for w in left_words:
+            col["sr" if w["x0"] < 30 else "desc"].append(w)
+        for w in join_fragments([w for w in r if w["x0"] >= desc_right]):
+            if NUMERIC.match(w["text"]):
+                name = min(cols, key=lambda c: abs(w["x1"] - c[2]))[0]
+            else:
+                name = text_col(w["x0"])
+            if name:
+                col[name].append(w)
+        for name in ("lab1", "comp1"):
+            if len(col[name]) > 1 and warn is not None:
+                warn.append(f"p.{pno}: two figures in one {name} cell: {[w['text'] for w in col[name]]}")
         # only a bare number (optionally with a letter) at the far left is a Sr. No.;
         # anything else that landed there is the start of the description
         srw = sorted(col["sr"], key=lambda w: w["x0"])
@@ -272,9 +314,11 @@ def build_items(rows, ch):
         if r["sr"]:
             sr, header, stack, last, unit_pre = r["sr"], [], [], None, []
         rate_lab, rate_comp, unit_raw = r["lab"], r["comp"], r["unit"]
+        metric = (r["unit2"], r["lab2"], r["comp2"])
         if rate_lab is None and rate_comp is None and re.match(r"^(per\s*)?k\.?m\.?$", r["unit2"], re.I) \
                 and (r["lab2"] is not None or r["comp2"] is not None):
             rate_lab, rate_comp, unit_raw = r["lab2"], r["comp2"], "Km"   # carriage by the km
+            metric = ("", None, None)
         is_leaf = rate_lab is not None or rate_comp is not None
         mk = marker(desc, stack) if desc else None
         if mk:
@@ -287,7 +331,8 @@ def build_items(rows, ch):
             n = block_idx[key] = block_idx.get(key, 0) + 1
             item = {"ch": ch, "sr": sr, "key": key, "n": n, "page": r["page"],
                     "head": flush_text(header), "parts": [t for _, t in stack] + [desc],
-                    "unit_parts": unit_pre + [unit_raw], "lab": rate_lab, "comp": rate_comp}
+                    "unit_parts": unit_pre + [unit_raw], "lab": rate_lab, "comp": rate_comp,
+                    "metric": metric}
             items.append(item)
             last, unit_pre = ("leaf", item), []
             continue
@@ -314,7 +359,7 @@ def build_items(rows, ch):
         else:
             header.append(desc)
 
-    out = []
+    out, prev_metric = [], None
     for it in items:
         raw = re.sub(r"-\s+(?=[a-z])", "", " ".join(u for u in it.pop("unit_parts") if u))  # "Char- coal"
         raw = re.sub(r"\s+", " ", raw).strip()
@@ -327,9 +372,68 @@ def build_items(rows, ch):
             if unit is None:
                 continue
         prev_unit = (unit, k, raw)
+        m_raw, m_lab, m_comp = it.pop("metric")
+        m = metric_unit(m_raw)
+        if m is None and m_raw.strip(". ").lower() in DITTO | {"", "per"}:
+            m = prev_metric
+        prev_metric = m or prev_metric
+        if unit == "Ton" and re.match(r"^(per\s*|p\.\s*)?tons?\.?$", raw, re.I) and m_raw and re.search(r"tonne", m_raw, re.I):
+            k = 1000 / LONG_TON_KG      # British "Ton" beside a metric "Tonne" figure is the long ton
         it.update(path=flush_text(it.pop("parts")), mrs_unit=raw, unit=unit, k=k)
+        it["xc"], it["xnote"] = cross_check(it, m, m_lab, m_comp)
         out.append(it)
     return out
+
+
+def metric_unit(raw):
+    """Metric unit printed beside a rate -> (house base unit, metric-per-house factor, multiplier)."""
+    u = re.sub(r"^(?:-+|\.\d+)\s+", "", re.sub(r"\s+", " ", raw or "").strip())   # stray "--" / ".25"
+    u = re.sub(r"^(per|p)\b\.?\s*", "", u, flags=re.I).strip()
+    mult = 1
+    g = re.match(r"^([\d,]+)\s*(.*)$", u)
+    if g:
+        mult, u = int(g.group(1).replace(",", "")), g.group(2).strip()
+    key = u.lower().replace(".", "").replace(" ", "")
+    table = {"sqm": ("Sft", 10.7639104), "cum": ("Cft", 35.3146667), "metre": ("Rft", 3.2808399),
+             "meter": ("Rft", 3.2808399), "mtr": ("Rft", 3.2808399), "m": ("Rft", 3.2808399),
+             "each": ("Nos", 1), "no": ("Nos", 1), "nos": ("Nos", 1), "kg": ("Kg", 1),
+             "ton": ("Ton", 1), "tonne": ("Ton", 1), "km": ("Km", 1), "hect": ("Acre", 2.4710538),
+             "ltr": ("Gallon", None)}   # MRS uses both imperial and US gallons; see cross_check
+    return (table[key][0], table[key][1], mult) if key in table else None
+
+
+def cross_check(it, m, m_lab, m_comp):
+    """MRS prints every rate twice, British and metric, on the same row. Converted, they
+    must agree: 1 = they do (the line is confirmed), -1 = the schedule's own two figures
+    disagree (flagged, with the metric figure for comparison), 0 = cannot be compared."""
+    if not m:
+        return 0, ""
+    base, factor, mult = m
+    if it["unit"].split(" ")[0] != base:
+        return 0, ""
+    best = None
+    # per litre vs per gallon: the schedule uses imperial (4.546 L) and US (3.785 L)
+    # gallons in different items, so accept whichever one both columns agree on
+    for f in ([1 / 4.54609, 1 / 3.78541] if factor is None else [factor]):
+        res, notes = [], []
+        for name, b, mv in (("labour", it["lab"], m_lab), ("composite", it["comp"], m_comp)):
+            if b is None or mv is None:
+                continue
+            exp, got = b * it["k"] * f, mv / mult
+            ok = abs(got - exp) <= max(0.015 * exp, 0.06)
+            res.append(ok)
+            if not ok:
+                notes.append(f"{name} {mv:,.2f} per {m_unit_label(base)} = {got / f:,.2f} per {base}")
+        if res and all(res):
+            return 1, ""
+        best = best or (res, notes)
+    if not best or not best[0]:
+        return 0, ""
+    return -1, "MRS metric column gives " + "; ".join(best[1])
+
+
+def m_unit_label(base):
+    return {"Sft": "Sqm", "Cft": "Cum", "Rft": "metre", "Gallon": "litre", "Acre": "hectare"}.get(base, base)
 
 
 # ---------------------------------------------------------------- document
@@ -376,6 +480,8 @@ def main():
     ap.add_argument("--dump", type=Path, help="also write the parsed lines here as JSON")
     ap.add_argument("--no-write", action="store_true", help="parse only, leave the dashboard alone")
     a = ap.parse_args()
+    if not a.pdf.is_file():
+        sys.exit(f"{a.pdf}: file not found")
 
     with pdfplumber.open(a.pdf) as pdf:
         meta = doc_meta(pdf)
@@ -383,17 +489,19 @@ def main():
             sys.exit("title line (edition / period / district) not found")
         toc = contents(pdf)
         want = {c for c, *_ in toc} if a.chapters == "all" else parse_chapters(a.chapters)
-        chapters, items = [], []
+        chapters, items, warn = [], [], []
         for ch, name, p1, p2 in toc:
             if ch not in want:
                 continue
             rows = []
             for pno in range(p1, min(p2, len(pdf.pages)) + 1):
-                rows.extend(page_rows(pdf.pages[pno - 1], pno))
+                rows.extend(page_rows(pdf.pages[pno - 1], pno, warn))
             got = build_items(rows, ch)
             chapters.append([ch, name, p1, p2, len(got)])
             items.extend(got)
             print(f"  Ch.{ch:<2} {name:<48} p.{p1}-{p2}: {len(got)} rate lines")
+    for w in warn:
+        print("  check:", w)
 
     heads, head_ix = [], {}
     for i in items:
@@ -407,10 +515,14 @@ def main():
         "heads": heads,
         # [chapter, item (Sr. No., or P<page> for an unnumbered section), line in item, page,
         #  item heading (index into heads), the line's own sub-heads + text,
-        #  MRS unit as printed, house unit, factor to house unit, labour, composite]
+        #  MRS unit as printed, house unit, factor to house unit, labour, composite,
+        #  metric cross-check (1 confirmed, 0 not comparable, -1 MRS's two columns disagree), note]
         "items": [[i["ch"], i["key"], i["n"], i["page"], head_ix[i["head"]], i["path"], i["mrs_unit"],
-                   i["unit"], round(i["k"], 10), i["lab"], i["comp"]] for i in items],
+                   i["unit"], round(i["k"], 10), i["lab"], i["comp"], i["xc"], i["xnote"]] for i in items],
     })
+    xc = [i["xc"] for i in items]
+    print(f"metric cross-check: {xc.count(1)} lines confirmed by the MRS metric column, "
+          f"{xc.count(-1)} where the MRS's own two columns disagree (flagged), {xc.count(0)} not comparable")
     print(f"{meta['edition']}, District {meta['district']} ({meta['from']} to {meta['to']}): "
           f"{len(items)} rate lines from {len(chapters)} chapters")
     if a.dump:
