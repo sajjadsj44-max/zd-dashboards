@@ -104,6 +104,58 @@ tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
 Receipts already in the register are skipped, so a cumulative export can be
 re-run safely. The raw exports are not committed.
 
+## Punjab MRS Rates (Rate Analysis)
+
+QS Cost Control → **Punjab MRS Rates** is a read-only register of the Punjab
+Finance Department's **Market Rates System (MRS)**, next to the GRN Price
+Register. Loaded on 23-Sep-2026 from the **1st Bi-Annual 2026, District
+Rawalpindi** edition (valid 01-Jan-2026 to 30-Jun-2026; `Punjab rates
+385_20260110213957.pdf` from Google Drive): **1,539 rate lines** from the
+building-construction chapters — Loading/Unloading, Earthwork, Dismantling,
+Concrete, Brickwork, Stone Masonry, Roofing, Flooring, Surface Rendering, Wood
+Work, Painting & Varnishing, Plumbing/Sanitary/Gas, Iron Work and Miscellaneous.
+
+Each line shows the MRS labour and composite (labour + material) rate in house
+units — per 100 Sft, per 1000 Cft, per Cwt (→ Kg) and so on are converted — with
+the figure and unit as printed and its chapter, item, line and page, so it can
+be checked against the PDF. Search, filter by chapter, unit or metric check, and
+export CSV. **+ Rate DB** copies one line (composite or labour share) into the
+Rate Database as a market-indication (`I`) rate — a published schedule, not a PO
+or GRN — with location, effective date and the MRS reference in its remarks
+(`Punjab MRS 1st Bi-Annual 2026 (Rawalpindi), 01-Jan-2026 — Ch.6 item 9, line
+19 (Concrete), p.39; ...`). The register itself never changes the Rate Database
+or any analysis until a line is added that way.
+
+**Checked against the PDF.** MRS prints every rate twice on the same row, in
+British and metric units. The loader converts one to the other for every line:
+**1,453** lines agree, **26** are lines where the schedule's own two figures
+disagree (e.g. p.65 Multani tiles, 1,261.55 per Sft beside 4,137.80 per Sqm) —
+those carry a ⚠ check mark with the metric figure, and that note travels into
+the remarks if one is added to the Rate Database — and 60 use units that have
+no metric counterpart (Job, Point, Letter ...). Every figure was also found on
+its cited page by a second PDF reader.
+
+The edition's period has lapsed, so the tab says so: treat these as a benchmark
+and prefer a current, dated Lahore rate for a live BOQ (see `CLAUDE.md`). To
+load a newer edition or another district — edition, district, period and
+chapter pages are read from the PDF itself:
+
+```sh
+pip install pdfplumber                       # once
+tools/mrs_register.py MRS.pdf                # building chapters (default)
+tools/mrs_register.py MRS.pdf --chapters all # or e.g. 2-13,19,24,25,26
+python3 -m unittest tools/test_mrs_register.py          # parser tests
+MRS_PDF=MRS.pdf python3 -m unittest tools/test_mrs_register.py   # + end-to-end
+```
+
+Left out by default: Ch.1 Carriage — its mile and km bands are printed over each
+other in the PDF and cannot be read back reliably — Ch.5 Mortar (a material
+consumption table, no rates), and the non-building chapters (canals, sheet
+piling, roads, drainage, sewerage, wells, tubewells, electrical, HVAC; HVAC's
+table layout is different and reads as 0 lines even with `--chapters all`). The
+data lives in the `<script type="application/json" id="raMrsData">` block of
+`zameen-developments/index.html`.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -171,6 +223,8 @@ netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
+tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Rates register
+tools/test_mrs_register.py          tests for the MRS loader
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
