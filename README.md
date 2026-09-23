@@ -104,6 +104,38 @@ tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
 Receipts already in the register are skipped, so a cumulative export can be
 re-run safely. The raw exports are not committed.
 
+## KPK MRS Rates (Rate Analysis)
+
+QS Cost Control → **KPK MRS Rates** lists all 4,584 items of the Khyber
+Pakhtunkhwa Finance Department (MRS Cell) **Market Rate System MRS-2025 (1st
+Bi-Annual)**, notified 07-Oct-2025 (No.MRS/FD/4-2/NOTIFICATION/2025), Peshawar
+base rates. Items are kept separate by their 28 chapters (item types: carriage,
+earthwork, concrete, brick masonry … electrical, photovoltaic, repair &
+maintenance). Each item has its British and metric unit, labour and composite
+rate exactly as printed, the specification reference, the MRS remarks and the
+PDF page number. Units default to British (Cft / Sft / Rft); the metric column
+is available as printed. A district or merged-area location factor (from the
+schedule's own factor tables) can be applied to every rate shown. The filtered
+CSV carries `KPK MRS-2025 (1st Bi-Annual), 07-Oct-2025 — item <code> …` in its
+Source / remarks column and 2025-10-07 as its effective date.
+
+Composite rates include 23.5% (4% KP sales tax, 2% overheads, 7.5% income tax,
+10% contractor's profit). They are KPK government schedule rates, not Lahore
+market rates — a benchmark, not a substitute for a dated Lahore quote or GRN.
+
+The data is embedded in `zameen-developments/index.html` (the
+`<script type="application/json" id="raMrsData">` block). To load a newer
+bi-annual edition:
+
+```sh
+pip install pymupdf                       # once
+tools/kpk_mrs.py "KPK Market Rate System 2026 (1st Bi Annual).pdf" \
+    --edition "MRS-2026 (1st Bi-Annual)" --notified YYYY-MM-DD \
+    --notification "No.MRS/FD/..."
+```
+
+The PDF is not committed.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -171,6 +203,7 @@ netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
+tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
