@@ -104,6 +104,29 @@ tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
 Receipts already in the register are skipped, so a cumulative export can be
 re-run safely. The raw exports are not committed.
 
+## Punjab MRS reference rates (Rate Database)
+
+QS Cost Control → Rate Analysis → **Rate Database** carries 1,133 reference
+rates (`MRS-C<chapter>-<n>` codes) seeded on 23-Sep-2026 from the Punjab
+**Market Rates System (MRS), 1st Bi-Annual 2026, District Rawalpindi**
+(01-Jan-2026 to 30-Jun-2026; source PDF supplied by the user via Google
+Drive). These are official, dated composite work rates — not atomic material
+inputs — covering the building-construction chapters: Earthwork, Dismantling,
+Concrete, Brickwork, Stone Masonry, Roofing, Flooring, Surface Rendering,
+Wood Work, Painting & Varnishing, Iron Work and Miscellaneous. Carriage,
+Loading/Unloading/Stacking and Mortar were left out: the first two price
+transport in units (Chain, Mile, Cwt) that don't fit a per-house-unit rate
+line, and Mortar's own MRS table is a material-consumption reference, not a
+priced-item table.
+
+Each row's Source / remarks cites `Ch.<n> (<name>) Sr.<item>, p.<page>` so it
+can be checked against the source PDF; rows whose reconstructed description
+couldn't be reliably matched to a single rate (a handful of 2-D grid tables,
+e.g. wood species × thickness) were dropped rather than guessed. Location is
+`Rawalpindi` and Effective date is `2026-01-01` throughout — re-derive per
+`CLAUDE.md`'s house preference for a current Lahore rate before using one of
+these for a live BOQ where a newer, local figure exists.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
