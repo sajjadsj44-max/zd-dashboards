@@ -177,8 +177,10 @@ crush sources can be changed on the item's parameter panel.
 
 Two rate lines were added: `ADMIX-SP` (FosPak SP 568, 185/kg, Quadrangle GRN
 RCP-1847, 24-Jul-2024 — latest GRN, no current Lahore rate found) and `FLYASH`
-(0, **ASSUMPTION — no dated source**). Until a dated fly-ash rate is entered the
-Al Rafiq items show one unrated row each and their rates are understated.
+at 1.758/kg, **ASSUMPTION — no dated source**: the top of a Pakistan range of
+Rs 2–1,758 per metric ton from a 23-Sep-2026 web-search summary (no seller, no
+date). It is probably low, since fly-ash bricks sell at Rs 13–18 each. Replace it
+with a dated quotation before pricing a live BOQ.
 
 ## Netlify
 
