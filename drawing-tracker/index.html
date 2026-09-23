@@ -90,7 +90,7 @@ footer .wrap{max-width:1180px;margin:0 auto}
     <div class="kpi"><div class="n" id="kProjects">&mdash;</div><div class="l">PROJECTS TRACKED</div></div>
     <div class="kpi received"><div class="n" id="kReceived">&mdash;</div><div class="l">DRAWINGS RECEIVED (LOGGED)</div></div>
     <div class="kpi pending"><div class="n" id="kPending">&mdash;</div><div class="l">PACKAGES PENDING ENTRY</div></div>
-    <div class="kpi"><div class="n" id="kUpdated">&mdash;</div><div class="l">REGISTER LAST UPDATED</div></div>
+    <div class="kpi"><div class="n" id="kUpdated">&mdash;</div><div class="l">LATEST DRAWING RECEIVED</div></div>
   </div>
 
   <div class="panel">
@@ -141,7 +141,9 @@ footer .wrap{max-width:1180px;margin:0 auto}
 
   // Google Sheet backing this dashboard. Update SHEET_ID if the register is ever recreated / moved.
   var SHEET_ID = "1pVkLpD3Yi9JW3C3BvfYQGOcK8_t4DbuIBUOSne4BZJs";
-  var GVIZ_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json;responseHandler:__zdDrawingCB&gid=0";
+  // headers=1 makes Google return the heading row as column labels even over date
+  // columns; cb= stops a browser or proxy from serving a stale copy of the sheet.
+  var GVIZ_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json;responseHandler:__zdDrawingCB&gid=0&headers=1&cb=" + Date.now();
 
   var ROWS = [];
   var activeProject = null;
@@ -149,6 +151,8 @@ footer .wrap{max-width:1180px;margin:0 auto}
   function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
     return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
   }); }
+
+  function norm(s){ return String(s||"").toLowerCase().replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim(); }
 
   function statusClass(st){
     st = (st||"").toLowerCase();
@@ -170,20 +174,34 @@ footer .wrap{max-width:1180px;margin:0 auto}
     document.body.appendChild(script);
   }
 
+  function cellText(c){
+    if(!c) return "";
+    var v = c.f!=null ? c.f : c.v;
+    return v==null ? "" : String(v).trim();
+  }
+
   function parseGviz(json){
-    var cols = json.table.cols.map(function(c){ return (c.label||c.id||"").trim(); });
-    var idx = {};
-    cols.forEach(function(name, i){ idx[name] = i; });
+    var key = function(s){ return String(s||"").trim().toLowerCase(); };
     var rows = json.table.rows||[];
-    return rows.map(function(r){
-      function cell(name){
-        var i = idx[name];
-        if(i==null) return "";
-        var c = r.c[i];
-        if(!c) return "";
-        return (c.f!=null ? c.f : c.v)!=null ? (c.f!=null?c.f:c.v) : "";
+    var cols = json.table.cols.map(function(c){ return key(c.label); });
+    // If Google did not lift the heading row into the labels, find it in the data.
+    if(cols.indexOf("project")<0){
+      for(var h=0; h<rows.length && h<10; h++){
+        var cand = (rows[h].c||[]).map(function(c){ return key(cellText(c)); });
+        if(cand.indexOf("project")>=0){ cols = cand; rows = rows.slice(h+1); break; }
       }
+    }
+    var idx = {};
+    cols.forEach(function(name, i){ if(name && idx[name]==null) idx[name] = i; });
+    return rows.map(function(r){
+      function cellAt(name){
+        var i = idx[key(name)];
+        return i==null ? null : (r.c||[])[i];
+      }
+      function cell(name){ return cellText(cellAt(name)); }
+      var dc = cellAt("Date Received"), dm = dc && typeof dc.v==="string" && /^Date\((\d+),(\d+),(\d+)/.exec(dc.v);
       return {
+        dateValue: dm ? new Date(+dm[1], +dm[2], +dm[3]) : null,
         project: cell("Project"),
         discipline: cell("Discipline"),
         drawing: cell("Drawing / Revision"),
@@ -208,7 +226,11 @@ footer .wrap{max-width:1180px;margin:0 auto}
     document.getElementById("kProjects").textContent = Object.keys(projects).length;
     document.getElementById("kReceived").textContent = received;
     document.getElementById("kPending").textContent = pending;
-    document.getElementById("kUpdated").textContent = "23-Sep-2026";
+    var latest = null;
+    ROWS.forEach(function(r){ if(r.dateValue && (!latest || r.dateValue > latest)) latest = r.dateValue; });
+    document.getElementById("kUpdated").textContent = latest
+      ? (("0"+latest.getDate()).slice(-2) + "-" + "Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(" ")[latest.getMonth()] + "-" + latest.getFullYear())
+      : "\u2014";
   }
 
   function renderProjects(){
@@ -253,7 +275,7 @@ footer .wrap{max-width:1180px;margin:0 auto}
 
     var rows = ROWS.filter(function(r){
       if(activeProject && r.project!==activeProject) return false;
-      if(statusQ && (r.status||"").indexOf(statusQ)<0) return false;
+      if(statusQ && norm(r.status).indexOf(norm(statusQ))<0) return false;
       if(q){
         var hay = [r.project,r.discipline,r.drawing,r.status,r.category,r.remarks].join(" ").toLowerCase();
         if(hay.indexOf(q)<0) return false;
