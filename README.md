@@ -156,6 +156,30 @@ table layout is different and reads as 0 lines even with `--chapters all`). The
 data lives in the `<script type="application/json" id="raMrsData">` block of
 `zameen-developments/index.html`.
 
+## Concrete design mixes (Rate Analysis)
+
+Rate Analysis → Item Library now carries **24 generated design-mix RCC items**
+(per Cft), built from two lab mix-design sheets received 23-Sep-2026:
+
+- **Al Rafiq Ready Mix — Summary of concrete mix design** (20 rows, 1000–9000 psi;
+  cement + fly ash, silica fume from 8000 psi, SP 224/150 or SP 534/40):
+  `RCC-DM-AR-<psi>`; the second 6500 and 7000 psi rows (10mm-heavy, SP 534/40)
+  are `RCC-DM-AR-6500B` / `-7000B`.
+- **Concrete Mix Design ACI-211** lab sheet (1500, 4000, 4500, 6000 psi):
+  `RCC-DM-ACI-<psi>`.
+
+Batch weights per m³ are held in `RA_DMIX` and converted per Cft (÷ 35.3147):
+cement ÷ 50 kg/bag; fly ash, silica and admixture in Kg; sand and crush in Cft
+from the Al Rafiq sheet's own CFT columns (46.65 kg/cft sand, 41.00 kg/cft
+crush — the same densities are used for the ACI sheet, flagged as an assumption);
+water as an optional allowance. Labour and plant follow nominal-mix RCC. Sand and
+crush sources can be changed on the item's parameter panel.
+
+Two rate lines were added: `ADMIX-SP` (FosPak SP 568, 185/kg, Quadrangle GRN
+RCP-1847, 24-Jul-2024 — latest GRN, no current Lahore rate found) and `FLYASH`
+(0, **ASSUMPTION — no dated source**). Until a dated fly-ash rate is entered the
+Al Rafiq items show one unrated row each and their rates are understated.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
