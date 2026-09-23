@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZD Drawing Tracker</title>
+<style>
+:root{
+  --navy:#0f2942; --navy2:#16375a; --blue:#2b7de9;
+  --bg:#eef2f7; --card:#fff; --line:#dde5ee; --txt:#1e2b3a; --muted:#6b7d92;
+  --green:#1e8e5a; --amber:#c9822a; --grey:#8a96a5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);
+  font-family:"Segoe UI",-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;
+  font-size:14px;-webkit-font-smoothing:antialiased}
+header{background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);color:#fff;padding:28px 20px}
+.wrap{max-width:1180px;margin:0 auto}
+header .row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px}
+header .mark{width:40px;height:40px;border:2px solid #fff;border-radius:8px;display:flex;
+  align-items:center;justify-content:center;font-weight:800;font-size:16px;margin-bottom:12px}
+header h1{font-size:22px;font-weight:700;letter-spacing:.3px}
+header p{color:#9dbcdc;font-size:12.5px;margin-top:6px}
+header a.back{color:#cfe0f5;font-size:12px;text-decoration:none;border:1px solid rgba(255,255,255,.35);
+  border-radius:6px;padding:6px 10px}
+header a.back:hover{background:rgba(255,255,255,.1)}
+main{padding:22px 20px 60px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.kpi .n{font-size:24px;font-weight:800;color:var(--navy)}
+.kpi .l{font-size:11px;color:var(--muted);letter-spacing:.4px;margin-top:2px}
+.kpi.received .n{color:var(--green)}
+.kpi.pending .n{color:var(--amber)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:10px;margin-bottom:18px;overflow:hidden}
+.panel .hd{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.panel .hd h2{font-size:14px;font-weight:700;color:var(--navy)}
+.panel .hd .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.panel .bd{padding:14px 16px}
+.projgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.pcard{border:1px solid var(--line);border-radius:9px;padding:12px 14px;cursor:pointer;transition:.15s}
+.pcard:hover{border-color:var(--blue);box-shadow:0 3px 10px rgba(15,41,66,.08)}
+.pcard.active{border-color:var(--blue);background:#f3f8ff}
+.pcard .pname{font-weight:700;font-size:13px;color:var(--navy);margin-bottom:6px}
+.pcard .pstats{display:flex;gap:10px;font-size:11.5px;color:var(--muted)}
+.pcard .pstats b{color:var(--txt)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px}
+.dot.g{background:var(--green)} .dot.a{background:var(--amber)} .dot.grey{background:var(--grey)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.filters select,.filters input{border:1px solid var(--line);border-radius:6px;padding:7px 10px;font-size:12.5px;color:var(--txt);background:#fff}
+.filters input{min-width:220px}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;background:#f6f9fc;color:var(--muted);font-weight:700;font-size:10.5px;
+  letter-spacing:.5px;text-transform:uppercase;padding:9px 10px;border-bottom:1px solid var(--line);position:sticky;top:0}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:hover td{background:#fafcff}
+.tblwrap{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:8px}
+.badge{display:inline-block;font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:20px}
+.badge.received{background:#e5f5ec;color:var(--green)}
+.badge.pending{background:#fbeedd;color:var(--amber)}
+.badge.progress{background:#e6eefc;color:var(--blue)}
+.badge.waiting{background:#f1e9fb;color:#7b4fbf}
+a.openlink{color:var(--blue);text-decoration:none;font-weight:600;font-size:12px}
+a.openlink:hover{text-decoration:underline}
+.note{margin-top:8px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--blue);
+  border-radius:8px;padding:12px 14px;font-size:12px;color:var(--muted);line-height:1.6}
+.note b{color:var(--txt)}
+.stateMsg{padding:30px;text-align:center;color:var(--muted);font-size:13px}
+.btnUpdate{display:inline-block;background:var(--blue);color:#fff;font-size:12px;font-weight:700;
+  padding:8px 14px;border-radius:7px;text-decoration:none}
+.btnUpdate:hover{background:#1f68c9}
+footer{padding:0 20px 40px;font-size:11px;color:var(--muted)}
+footer .wrap{max-width:1180px;margin:0 auto}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap row">
+    <div>
+      <div class="mark">ZD</div>
+      <h1>Drawing Tracker</h1>
+      <p>Project-wise design drawing register &mdash; received / in progress / waiting, sourced from the shared drawing Drive.</p>
+    </div>
+    <a class="back" href="../index.html">&larr; All dashboards</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="kpis">
+    <div class="kpi"><div class="n" id="kProjects">&mdash;</div><div class="l">PROJECTS TRACKED</div></div>
+    <div class="kpi received"><div class="n" id="kReceived">&mdash;</div><div class="l">DRAWINGS RECEIVED (LOGGED)</div></div>
+    <div class="kpi pending"><div class="n" id="kPending">&mdash;</div><div class="l">PACKAGES PENDING ENTRY</div></div>
+    <div class="kpi"><div class="n" id="kUpdated">&mdash;</div><div class="l">REGISTER LAST UPDATED</div></div>
+  </div>
+
+  <div class="panel">
+    <div class="hd">
+      <div><h2>Projects</h2><div class="sub">Click a project to filter the register below</div></div>
+    </div>
+    <div class="bd">
+      <div class="projgrid" id="projGrid"><div class="stateMsg">Loading&hellip;</div></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="hd">
+      <div><h2 id="tblTitle">Drawing register</h2><div class="sub" id="tblSub">All projects</div></div>
+      <div class="filters">
+        <input type="search" id="searchBox" placeholder="Search drawing, discipline, remarks&hellip;">
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="Received">Received</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Waiting">Waiting</option>
+          <option value="Pending Entry">Pending Entry</option>
+        </select>
+        <button id="clearProj" class="btnUpdate" style="background:var(--grey);display:none">Clear project filter</button>
+      </div>
+    </div>
+    <div class="bd">
+      <div class="tblwrap">
+        <table>
+          <thead><tr>
+            <th>Project</th><th>Discipline</th><th>Drawing / Revision</th><th>Status</th>
+            <th>Date received</th><th>Category / Source</th><th>Remarks</th><th></th>
+          </tr></thead>
+          <tbody id="tblBody"><tr><td colspan="8" class="stateMsg">Loading register&hellip;</td></tr></tbody>
+        </table>
+      </div>
+      <div class="note" id="footNote"></div>
+    </div>
+  </div>
+
+</main>
+
+<footer><div class="wrap">Zameen Developments &middot; Drawing Tracker &mdash; live from the ZD Drawing Register Google Sheet.</div></footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // Google Sheet backing this dashboard. Update SHEET_ID if the register is ever recreated / moved.
+  var SHEET_ID = "1pVkLpD3Yi9JW3C3BvfYQGOcK8_t4DbuIBUOSne4BZJs";
+  var GVIZ_URL = "https://docs.google.com/spreadsheets/d/" + SHEET_ID + "/gviz/tq?tqx=out:json;responseHandler:__zdDrawingCB&gid=0";
+
+  var ROWS = [];
+  var activeProject = null;
+
+  function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  }); }
+
+  function statusClass(st){
+    st = (st||"").toLowerCase();
+    if(st.indexOf("received")>=0) return "received";
+    if(st.indexOf("progress")>=0) return "progress";
+    if(st.indexOf("waiting")>=0) return "waiting";
+    return "pending";
+  }
+
+  function loadJsonp(url, cbName, onOk, onErr){
+    window[cbName] = function(json){
+      delete window[cbName];
+      script.remove();
+      try{ onOk(json); }catch(e){ onErr(e); }
+    };
+    var script = document.createElement("script");
+    script.src = url;
+    script.onerror = function(){ delete window[cbName]; onErr(new Error("Could not load the Google Sheet. It may not be shared as ‘Anyone with the link – Viewer’ yet.")); };
+    document.body.appendChild(script);
+  }
+
+  function parseGviz(json){
+    var cols = json.table.cols.map(function(c){ return (c.label||c.id||"").trim(); });
+    var idx = {};
+    cols.forEach(function(name, i){ idx[name] = i; });
+    var rows = json.table.rows||[];
+    return rows.map(function(r){
+      function cell(name){
+        var i = idx[name];
+        if(i==null) return "";
+        var c = r.c[i];
+        if(!c) return "";
+        return (c.f!=null ? c.f : c.v)!=null ? (c.f!=null?c.f:c.v) : "";
+      }
+      return {
+        project: cell("Project"),
+        discipline: cell("Discipline"),
+        drawing: cell("Drawing / Revision"),
+        status: cell("Status"),
+        dateReceived: cell("Date Received"),
+        category: cell("Category / Source Folder"),
+        remarks: cell("Remarks / Source"),
+        link: cell("Drive Folder Link")
+      };
+    }).filter(function(r){ return r.project; });
+  }
+
+  function renderKpis(){
+    var projects = {};
+    var received = 0, pending = 0;
+    ROWS.forEach(function(r){
+      projects[r.project] = true;
+      var s = (r.status||"").toLowerCase();
+      if(s.indexOf("received")>=0) received++;
+      else if(s.indexOf("pending")>=0) pending++;
+    });
+    document.getElementById("kProjects").textContent = Object.keys(projects).length;
+    document.getElementById("kReceived").textContent = received;
+    document.getElementById("kPending").textContent = pending;
+    document.getElementById("kUpdated").textContent = "23-Sep-2026";
+  }
+
+  function renderProjects(){
+    var byProj = {};
+    ROWS.forEach(function(r){
+      var p = r.project;
+      byProj[p] = byProj[p] || {received:0, pending:0, other:0, total:0};
+      byProj[p].total++;
+      var s = (r.status||"").toLowerCase();
+      if(s.indexOf("received")>=0) byProj[p].received++;
+      else if(s.indexOf("pending")>=0) byProj[p].pending++;
+      else byProj[p].other++;
+    });
+    var names = Object.keys(byProj).sort();
+    var html = names.map(function(p){
+      var s = byProj[p];
+      var cls = activeProject===p ? "pcard active" : "pcard";
+      return '<div class="'+cls+'" data-proj="'+esc(p)+'">'
+        + '<div class="pname">'+esc(p)+'</div>'
+        + '<div class="pstats">'
+        +   '<span><span class="dot g"></span><b>'+s.received+'</b> received</span>'
+        +   '<span><span class="dot a"></span><b>'+s.pending+'</b> pending entry</span>'
+        + (s.other ? '<span><span class="dot grey"></span><b>'+s.other+'</b> other</span>' : '')
+        + '</div></div>';
+    }).join("");
+    document.getElementById("projGrid").innerHTML = html || '<div class="stateMsg">No rows found.</div>';
+    Array.prototype.forEach.call(document.querySelectorAll(".pcard"), function(el){
+      el.addEventListener("click", function(){
+        var p = el.getAttribute("data-proj");
+        activeProject = (activeProject===p) ? null : p;
+        renderProjects();
+        renderTable();
+      });
+    });
+  }
+
+  function renderTable(){
+    var q = (document.getElementById("searchBox").value||"").toLowerCase();
+    var statusQ = document.getElementById("statusFilter").value;
+    document.getElementById("clearProj").style.display = activeProject ? "inline-block" : "none";
+    document.getElementById("tblSub").textContent = activeProject ? ("Project: "+activeProject) : "All projects";
+
+    var rows = ROWS.filter(function(r){
+      if(activeProject && r.project!==activeProject) return false;
+      if(statusQ && (r.status||"").indexOf(statusQ)<0) return false;
+      if(q){
+        var hay = [r.project,r.discipline,r.drawing,r.status,r.category,r.remarks].join(" ").toLowerCase();
+        if(hay.indexOf(q)<0) return false;
+      }
+      return true;
+    });
+
+    if(!rows.length){
+      document.getElementById("tblBody").innerHTML = '<tr><td colspan="8" class="stateMsg">No matching rows.</td></tr>';
+      return;
+    }
+
+    document.getElementById("tblBody").innerHTML = rows.map(function(r){
+      return "<tr>"
+        + "<td>"+esc(r.project)+"</td>"
+        + "<td>"+esc(r.discipline)+"</td>"
+        + "<td>"+esc(r.drawing)+"</td>"
+        + '<td><span class="badge '+statusClass(r.status)+'">'+esc(r.status)+'</span></td>'
+        + "<td>"+esc(r.dateReceived)+"</td>"
+        + "<td>"+esc(r.category)+"</td>"
+        + "<td>"+esc(r.remarks)+"</td>"
+        + "<td>"+(r.link ? '<a class="openlink" target="_blank" rel="noopener" href="'+esc(r.link)+'">Open in Drive &rarr;</a>' : "")+"</td>"
+        + "</tr>";
+    }).join("");
+  }
+
+  function boot(){
+    renderKpis();
+    renderProjects();
+    renderTable();
+    document.getElementById("footNote").innerHTML =
+      '<b>How this register works:</b> rows with a real drawing name and date were logged from the shared '
+      + '“New ZD Drive” project folders (scanned 23-Sep-2026). Rows marked <span class="badge pending">Pending Entry</span> '
+      + 'are discipline folders that exist in Drive but have not yet had individual drawings logged — the Document Controller '
+      + 'or QS team updates the <a class="openlink" target="_blank" rel="noopener" href="https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/edit">ZD Drawing Register sheet</a> '
+      + 'as drawings are actually received, put in progress or awaited; this page always reflects the sheet live. '
+      + 'No status shown here is invented — unlogged items stay “Pending Entry” until someone confirms them.';
+  }
+
+  loadJsonp(GVIZ_URL, "__zdDrawingCB", function(json){
+    ROWS = parseGviz(json);
+    boot();
+  }, function(err){
+    document.getElementById("projGrid").innerHTML = '<div class="stateMsg">'+esc(err.message)+'</div>';
+    document.getElementById("tblBody").innerHTML = '<tr><td colspan="8" class="stateMsg">'+esc(err.message)+'</td></tr>';
+  });
+
+  document.getElementById("searchBox").addEventListener("input", renderTable);
+  document.getElementById("statusFilter").addEventListener("change", renderTable);
+  document.getElementById("clearProj").addEventListener("click", function(){ activeProject=null; renderProjects(); renderTable(); });
+})();
+</script>
+</body>
+</html>
