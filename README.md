@@ -7,6 +7,7 @@ Static, self-contained HTML dashboards published live on Netlify and GitHub Page
 | Page | Netlify (short link to share) | GitHub Pages |
 |---|---|---|
 | Zameen Developments | https://zd-dashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
+| Drawing Tracker | https://zd-dashboard.netlify.app/drawing-tracker/ | https://sajjadsj44-max.github.io/zd-dashboards/drawing-tracker/ |
 | Dashboard index | https://zd-dashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/zd-dashboards/ |
 
 On Netlify the site root serves the dashboard itself (see the rewrite in
@@ -61,6 +62,22 @@ Expected Completion | Remarks
 Rate is derived as cost ÷ area when the rate cell is blank. Project names are
 matched to the log through the built-in `PROJECTS` registry, so `NEO` in the
 log and `Zameen NEO` in the summary resolve to the same project.
+
+The Drawing Tracker (`drawing-tracker/index.html`) reads one Google Sheet,
+**`ZD Drawing Register (Tracking)`** (`SHEET_ID` in that file), first tab via
+`gid=0`, also over the gviz JSONP endpoint — so it too needs to stay shared as
+*Anyone with the link · Viewer*. Columns: `Project | Discipline | Drawing /
+Revision | Status | Date Received | Category / Source Folder | Remarks /
+Source | Drive Folder Link`. It was seeded on 23-Sep-2026 from the drawings
+actually found in the shared "New ZD Drive" (ARX, DTR, EON, GRANDE PALLADIUM -
+IVORY, GVR Multan, HIVE, JADE, MALL-35, NEO, PHOENIX, QUADRANGLE): rows with a
+real drawing name and date were logged as `Received`; every project/discipline
+combination without a logged drawing yet is seeded as `Pending Entry` with a
+link straight to its Drive folder. The Document Controller / QS team keeps it
+current by editing the sheet directly — add a row per drawing as it's
+received, or change a `Pending Entry` row's status to `In Progress` /
+`Waiting` / `Received`; the dashboard just reflects the sheet live, it never
+invents a status.
 
 ## Netlify
 
@@ -127,6 +144,7 @@ connection.
 index.html                          landing page listing all dashboards
 netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
+drawing-tracker/index.html          Drawing Tracker dashboard
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
