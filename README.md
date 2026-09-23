@@ -79,6 +79,31 @@ received, or change a `Pending Entry` row's status to `In Progress` /
 `Waiting` / `Received`; the dashboard just reflects the sheet live, it never
 invents a status.
 
+## GRN Price Register (Rate Analysis)
+
+QS Cost Control → **GRN Price Register** lists every item received on site with
+the rate of its latest GRN, the vendor, the number of receipts and the low–high
+range, plus the full receipt history per item. Seeded on 23-Sep-2026 from the ERP
+material receiving exports of **Quadrangle** (3,138 receipts, Mar-2021 to
+Aug-2025) and **Phoenix** (770 receipts, Nov-2022 to 07-Sep-2026): 1,775 items in
+total. Rates billed per cubic metre, metre or square metre are converted to Cft,
+Rft and Sft; the GRN unit and rate stay in the history. **+ Rate DB** copies an
+item's latest GRN rate into the Rate Database as a verified line, with
+`<Site> GRN RCP-n, DD-Mon-YYYY — <vendor>` in its remarks and the same date as
+its effective date.
+
+The data is embedded in `zameen-developments/index.html` (the
+`<script type="application/json" id="raGrnData">` block). To add another site or
+a newer export, run:
+
+```sh
+pip install openpyxl                      # once
+tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
+```
+
+Receipts already in the register are skipped, so a cumulative export can be
+re-run safely. The raw exports are not committed.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -145,6 +170,7 @@ index.html                          landing page listing all dashboards
 netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
+tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
