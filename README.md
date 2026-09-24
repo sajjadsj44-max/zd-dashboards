@@ -253,8 +253,17 @@ item is built up as:
   **+ Rate DB** button uses), or an existing Rate Database line (`SAN-WC`, `SAN-WB`).
   Pipe fittings and tray accessories are a share of the pipe / tray value, taken from the
   Quadrangle receipts: PPRC 1.054, uPVC 0.980, MS 0.483, tray (without covers) 0.224.
-  Wire bought by the coil is converted at a 90 metre coil; insulation sheet and GI sheet
-  are converted to per Sft. Each conversion is written in the line's remarks.
+  Insulation sheet and GI sheet are converted to per Sft. Each conversion is written in
+  the line's remarks.
+- **Wire and small cable (refreshed 24-Sep-2026):** single-core wire and earth cable
+  1.5–70 mm², 2C 1.5 mm² speaker cable and RG-6 / RG-11 use the **Pakistan Cables suggested
+  retail price list, 03-Jun-2026** (90 metre coil, registered price including 18% GST,
+  ÷ 295.276 ft), cross-checked against the **Fast Cables retail price list, 10-Jan-2026**
+  (within about 5%). Both PDFs are in Google Drive. These are list prices with no trade
+  discount, about 2–2.4× the last GRNs (for example 1C 25 mm² 540.75/Rft against 227.10 on
+  Quadrangle GRN RCP-2297, 25-Jan-2025). Each line's remarks give the list price, the Fast
+  cross-check and the last GRN, and the line is marked `I` (market indication). Neither
+  list covers 600/1000 V power cable, GI sheet, insulation or pipe, so those stay on GRN.
 - **B. Wastage:** cables 3%, pipes / conduit / duct / insulation 5%, fixtures 0%.
 - **C. Labour:** `MAK-<item>` = the MAK rate for that item, read from the bill rows.
   BOQ rates are dated 25-Sep-2023 (the contract). Non-BOQ rates are dated 31-May-2025,
@@ -279,7 +288,9 @@ repeat a BOQ rate rounded to 2 dp were left out of those groups.
 
 The data is in the `<script type="application/json" id="raMepData">` block. Saved
 libraries get the new lines and items on their next load (missing codes only; nothing
-already in the library is changed). To rebuild from a newer bill or GRN register:
+already in the library is changed, except that a line or item still at a previously
+published version is moved to the new one — the block keeps those versions in `prevRates` /
+`prevItems`, and anything edited by hand is left alone). To rebuild from a newer bill or GRN register:
 
 ```sh
 pip install openpyxl
