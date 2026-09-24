@@ -34,6 +34,7 @@ overwritten).
 """
 import argparse
 import datetime as dt
+import hashlib
 import json
 import math
 import re
@@ -121,22 +122,44 @@ class Grn:
 
 
 # ------------------------------------------------------------- derived material lines
+PCL_SRC, PCL_DATE = "Pakistan Cables suggested retail price list, 03-Jun-2026", "2026-06-03"
+FAST_SRC = "Fast Cables retail price list, 10-Jan-2026"
+# (code, name, Pakistan Cables 90 m coil price, Fast Cables 90 m coil price or None, GRN index for comparison)
+PRICE_LIST = [
+    ("MEP-W1C15", "Copper wire 1C × 1.5 mm² stranded Cu/PVC 450/750 V (BS 6004)", 10915, 11449, 289),
+    ("MEP-W1C25", "Copper wire 1C × 2.5 mm² stranded Cu/PVC 450/750 V (BS 6004)", 17415, 18199, 301),
+    ("MEP-W1C4", "Copper wire 1C × 4 mm² Cu/PVC 450/750 V (BS 6004)", 26010, 27499, 307),
+    ("MEP-W1C4GY", "Earth wire 1C × 4 mm² Cu/PVC 450/750 V green/yellow (BS 6004)", 26010, 27499, 647),
+    ("MEP-W1C6", "Copper wire 1C × 6 mm² Cu/PVC 450/750 V (BS 6004)", 38650, 40599, 275),
+    ("MEP-E1C10", "Earth cable 1C × 10 mm² Cu/PVC 450/750 V (BS 6004)", 66810, 68499, 269),
+    ("MEP-E1C16", "Earth cable 1C × 16 mm² Cu/PVC 450/750 V (BS 6004)", 101785, 106499, 270),
+    ("MEP-E1C25", "Earth cable 1C × 25 mm² Cu/PVC 450/750 V (BS 6004)", 159670, None, 277),
+    ("MEP-E1C35", "Earth cable 1C × 35 mm² Cu/PVC 450/750 V (BS 6004)", 224885, None, 1225),
+    ("MEP-E1C50", "Earth cable 1C × 50 mm² Cu/PVC 450/750 V (BS 6004)", 305475, None, None),
+    ("MEP-E1C70", "Earth cable 1C × 70 mm² Cu/PVC 450/750 V (BS 6004)", 439475, None, 276),
+    ("MEP-SPK2C15", "Cable 2C × 1.5 mm² stranded Cu/PVC/PVC 300/500 V (BS 6004)", 27060, 27299, 1469),
+    ("MEP-RG6", "Co-axial cable RG-6 (Cu clad steel)", 14560, 23999, None),
+    ("MEP-RG11", "Co-axial cable RG-11 (Cu clad steel)", 30490, 36299, None),
+]
+
+
 def derived(grn):
     """Material lines that need a unit conversion of a GRN, or have no GRN at all."""
     out = {}
 
-    def coil(code, ix, name):
-        it = grn.items[ix]; l = it["last"]
-        out[code] = {"code": code, "kind": "M", "name": name, "unit": "Rft",
-                     "rate": round(l["rate"] / COIL_FT, 2), "loc": "Lahore",
-                     "src": grn.remark(it) + f". Per Rft = {rs(l['rate'])} per coil ÷ {COIL_FT:.3f} ft "
-                            "(ASSUMPTION on coil length: standard 90 metre house-wire coil)",
-                     "date": l["date"], "vs": "I"}
-
-    coil("MEP-W1C15", 289, "Copper wire 1C × 1.5 mm² Cu/PVC 450/750 V")
-    coil("MEP-W1C25", 301, "Copper wire 1C × 2.5 mm² Cu/PVC 450/750 V")
-    coil("MEP-W1C4", 307, "Copper wire 1C × 4 mm² Cu/PVC 450/750 V")
-    coil("MEP-W1C4GY", 647, "Earth wire 1C × 4 mm² Cu/PVC green/yellow")
+    for code, name, pcl, fast, gix in PRICE_LIST:
+        per = round(pcl / COIL_FT, 2)
+        src = (f"{PCL_SRC} — {name}, {rs(pcl)} per 90 metre coil (registered price, incl. 18% GST) "
+               f"÷ {COIL_FT:.3f} ft = {rs(per)}/Rft; suggested retail list price, trade discount not applied")
+        if fast:
+            src += f"; cross-check {FAST_SRC}: {rs(fast)} per coil = {rs(round(fast / COIL_FT, 2))}/Rft"
+        if gix is not None:
+            it = grn.items[gix]; l = it["last"]
+            last = l["rate"] / COIL_FT if it["unit"] == "Coil" else l["rate"]
+            src += (f"; last GRN {it['site']} {l['grn'] or '(no receipt no.)'}, {dmy(l['date'])}: "
+                    f"{rs(round(last, 2))}/Rft")
+        out[code] = {"code": code, "kind": "M", "name": name, "unit": "Rft", "rate": per, "loc": "Lahore",
+                     "src": src, "date": PCL_DATE, "vs": "I"}
 
     it = grn.items[469]; l = it["last"]; ft = 500 / 0.3048
     out["MEP-CAT6A"] = {"code": "MEP-CAT6A", "kind": "M", "name": "Cat-6A cable", "unit": "Rft",
@@ -252,11 +275,11 @@ ITEMS = [
     ("ME-307F", E, "Power points", "Providing wiring for hand dryer point, 3 × 1C 4 mm² in 1\" PVC conduit, complete in all respects (dryer by others)", "Nos", "E:150",
      pt(30, [("MEP-W1C4", 2), ("MEP-W1C4GY", 1)], box=321), WAST["cable"], ""),
     ("ME-308", E, "Power points", "Providing wiring and fixing 5-pin 32 A industrial socket, 5 × 1C 6 mm² in 1-1/2\" PVC conduit, complete in all respects", "Nos", "E:152",
-     pt(40, [(275, 5)], conduit="COND15", extra=[("MEP-Z-IPS32", 1, "32 A industrial socket with plug")]), WAST["cable"], ""),
+     pt(40, [("MEP-W1C6", 5)], conduit="COND15", extra=[("MEP-Z-IPS32", 1, "32 A industrial socket with plug")]), WAST["cable"], ""),
     ("ME-309", E, "Power points", "Providing wiring of fan coil unit / air handling unit from DB, 3 × 1C 4 mm² (P+N+CPC) in 1\" PVC conduit, complete in all respects", "Nos", "E:154,156",
      pt(40, [("MEP-W1C4", 2), ("MEP-W1C4GY", 1)]), WAST["cable"], ""),
     ("ME-311", E, "Power points", "Providing wiring of HVAC exhaust fan from DB, 4C 6 mm² + 1C 6 mm² CPC in 1-1/2\" PVC conduit, complete in all respects", "Nos", "E:158",
-     [(334, 40, "40 ft of 4C 6 mm² per point (quantity ASSUMPTION)"), (275, 40, "40 ft CPC"), ("COND15", 40, "40 ft conduit")], WAST["cable"], ""),
+     [(334, 40, "40 ft of 4C 6 mm² per point (quantity ASSUMPTION)"), ("MEP-W1C6", 40, "40 ft CPC"), ("COND15", 40, "40 ft conduit")], WAST["cable"], ""),
     ("ME-312", E, "Wiring", "Providing wiring and fixing hotel room door bell, 2 × 1C 1.5 mm² in 1\" PVC conduit, complete in all respects", "Nos", "E:160",
      pt(20, [("MEP-W1C15", 2)], box=321, extra=[(603, 1, "door push button"), ("MEP-Z-BELL", 1, "door bell")]), WAST["cable"], ""),
     ("ME-313", E, "Wiring", "Providing wiring and fixing DND panel with door bell push, 2 × 1C 1.5 mm² in 1\" PVC conduit, complete in all respects", "Nos", "E:162",
@@ -309,13 +332,13 @@ ITEMS = [
     ("ME-503H", E, "Power cable", "Supplying, laying, testing and commissioning 3C × 16 mm² Cu/PVC/PVC cable, complete in all respects", "Rft", "N:188", [("MEP-Z-3C16", 1, "")], WAST["cable"], ""),
     ("ME-503J", E, "Power cable", "Supplying, laying, testing and commissioning 3C × 4 mm² Cu/PVC/PVC cable, complete in all respects", "Rft", "N:189", [("MEP-Z-3C4", 1, "")], WAST["cable"], ""),
     ("ME-504A", E, "Earthing", "Supplying and laying 1C × 4 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:235", [("MEP-W1C4GY", 1, "")], WAST["cable"], ""),
-    ("ME-504B", E, "Earthing", "Supplying and laying 1C × 6 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:236", [(275, 1, "1C × 6 mm² Cu/PVC (latest receipt, yellow); green/yellow last received Oct-2023 at 43.28/Rft")], WAST["cable"], ""),
-    ("ME-504C", E, "Earthing", "Supplying and laying 1C × 10 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:237", [(269, 1, "")], WAST["cable"], ""),
-    ("ME-504D", E, "Earthing", "Supplying and laying 1C × 16 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:238", [(270, 1, "")], WAST["cable"], ""),
-    ("ME-504E", E, "Earthing", "Supplying and laying 1C × 25 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:239", [(277, 1, "")], WAST["cable"], ""),
-    ("ME-504F", E, "Earthing", "Supplying and laying 1C × 35 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:240", [(1225, 1, "1C × 35 mm² power cable GRN")], WAST["cable"], ""),
-    ("ME-504G", E, "Earthing", "Supplying and laying 1C × 50 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:241", [("MEP-Z-1C50", 1, "")], WAST["cable"], ""),
-    ("ME-504H", E, "Earthing", "Supplying and laying 1C × 70 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:242,243,380", [(276, 1, "")], WAST["cable"], ""),
+    ("ME-504B", E, "Earthing", "Supplying and laying 1C × 6 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:236", [("MEP-W1C6", 1, "")], WAST["cable"], ""),
+    ("ME-504C", E, "Earthing", "Supplying and laying 1C × 10 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:237", [("MEP-E1C10", 1, "")], WAST["cable"], ""),
+    ("ME-504D", E, "Earthing", "Supplying and laying 1C × 16 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:238", [("MEP-E1C16", 1, "")], WAST["cable"], ""),
+    ("ME-504E", E, "Earthing", "Supplying and laying 1C × 25 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:239", [("MEP-E1C25", 1, "")], WAST["cable"], ""),
+    ("ME-504F", E, "Earthing", "Supplying and laying 1C × 35 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:240", [("MEP-E1C35", 1, "")], WAST["cable"], ""),
+    ("ME-504G", E, "Earthing", "Supplying and laying 1C × 50 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:241", [("MEP-E1C50", 1, "")], WAST["cable"], ""),
+    ("ME-504H", E, "Earthing", "Supplying and laying 1C × 70 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:242,243,380", [("MEP-E1C70", 1, "")], WAST["cable"], ""),
     ("ME-504J", E, "Earthing", "Supplying and laying 1C × 95 mm² green/yellow PVC insulated earth conductor, complete in all respects", "Rft", "E:244,381", [(424, 1, "1C × 95 mm² cable GRN")], WAST["cable"], ""),
     # ---------------------------------------------------------------- containment
     ("ME-505A", E, "Containment", "Supplying and installing 1\" heavy-duty PVC conduit with accessories and pull wire, complete in all respects", "Rft", "E:249,250", [("COND1", 1, "")], WAST["pipe"], ""),
@@ -383,9 +406,9 @@ ITEMS = [
     ("MX-1304", ELV, "Public address", "Installing, testing and commissioning 60 W integrated power amplifier, complete in all respects", "Nos", "E:477", [], 0, ""),
     ("MX-1305", ELV, "Public address", "Installing and commissioning 10-zone remote microphone, complete in all respects", "Nos", "E:478", [], 0, ""),
     ("MX-1306", ELV, "Public address", "Providing speaker wiring, 2C 1.5 mm² PVC/PVC in 1\" PVC conduit, complete in all respects", "Point", "E:481",
-     [(1469, 40, "40 ft speaker cable per point (quantity ASSUMPTION)"), ("COND1", 40, "40 ft conduit per point (quantity ASSUMPTION)")], WAST["cable"], ""),
+     [("MEP-SPK2C15", 40, "40 ft speaker cable per point (quantity ASSUMPTION)"), ("COND1", 40, "40 ft conduit per point (quantity ASSUMPTION)")], WAST["cable"], ""),
     ("MX-1307", ELV, "Public address", "Providing speaker wiring through wall-mounted volume controller, including controller and back box, complete in all respects", "Point", "E:482",
-     [(1469, 40, "40 ft speaker cable per point (quantity ASSUMPTION)"), ("COND1", 40, "40 ft conduit per point (quantity ASSUMPTION)"), ("MEP-Z-VOLC", 1, "volume controller"), (321, 1, "back box")], WAST["cable"], ""),
+     [("MEP-SPK2C15", 40, "40 ft speaker cable per point (quantity ASSUMPTION)"), ("COND1", 40, "40 ft conduit per point (quantity ASSUMPTION)"), ("MEP-Z-VOLC", 1, "volume controller"), (321, 1, "back box")], WAST["cable"], ""),
     ("MX-1501", ELV, "Telephone", "Supplying, fabricating, installing and commissioning 300-pair MDF, complete in all respects", "Nos", "E:517", [], 0, ""),
     ("MX-1502", ELV, "Telephone", "Supplying and installing telephone DB (10 / 30 / 40 pair), complete in all respects", "Nos", "E:520", [], 0, "30 pair 1,818.75; 40 pair 2,546.25 (bill rows 521–522)."),
     ("MX-1601", ELV, "RFID door lock", "Installing, testing and commissioning offline RF door lock with RFID reader, complete in all respects", "Nos", "E:538", [], 0, ""),
@@ -393,9 +416,9 @@ ITEMS = [
     ("MX-1701", ELV, "MATV", "Supplying and installing MATV 8-way / 4-way splitter, complete in all respects", "Nos", "E:547,548", [("MEP-Z-SPLIT", 1, "")], 0, ""),
     ("MX-1702", ELV, "MATV", "Supplying, installing and commissioning HDTV booster, complete in all respects", "Nos", "E:550", [("MEP-Z-BOOST", 1, "")], 0, ""),
     ("MX-1703", ELV, "MATV", "Supplying, installing and commissioning 4-channel combiner mixer, complete in all respects", "Nos", "E:552", [], 0, ""),
-    ("MX-1704", ELV, "MATV", "Supplying, installing and commissioning RG-11 co-axial riser cable on tray, complete in all respects", "Rft", "E:554", [("MEP-Z-RG11", 1, "")], WAST["cable"], ""),
+    ("MX-1704", ELV, "MATV", "Supplying, installing and commissioning RG-11 co-axial riser cable on tray, complete in all respects", "Rft", "E:554", [("MEP-RG11", 1, "")], WAST["cable"], ""),
     ("MX-1705", ELV, "MATV", "Providing TV outlet wiring, RG-6 co-axial in 1\" PVC conduit, including TV outlet plate and back box, complete in all respects", "Point", "E:555",
-     [("MEP-Z-RG6", 50, "50 ft RG-6 per point (quantity ASSUMPTION)"), ("COND1", 50, "50 ft conduit per point (quantity ASSUMPTION)"), (1615, 1, "TV outlet"), (321, 1, "back box")], WAST["cable"], ""),
+     [("MEP-RG6", 50, "50 ft RG-6 per point (quantity ASSUMPTION)"), ("COND1", 50, "50 ft conduit per point (quantity ASSUMPTION)"), (1615, 1, "TV outlet"), (321, 1, "back box")], WAST["cable"], ""),
     ("MX-1706", ELV, "MATV", "Supplying and installing 16 SWG MS TV junction box, complete in all respects", "Nos", "E:557", [], 0, ""),
     # ---------------------------------------------------------------- plumbing fixtures
     ("MP-101", PL, "Sanitary ware", "Providing and fixing European WC with muslim shower, tee stop cock, flush and connections, complete in all respects", "Nos", "P:9", [("SAN-WC", 1, "WC suite rate line of the Rate Database")], 0, ""),
@@ -745,6 +768,11 @@ for k in ("075", "100", "125", "150", "200"):
 ALIAS = {"COND1": 282, "COND15": 1351}   # 1" and 1-1/2" PVC conduit GRNs
 
 
+def block_of(html):
+    m = BLOCK_RE.search(html)
+    return json.loads(m.group(2)) if m else None
+
+
 # ------------------------------------------------------------------ bill reader
 PARENT = {}   # (sheet, row) -> item number of the heading above it
 
@@ -839,10 +867,30 @@ def main():
     rates, items, problems = build(read_bill(a.bill), Grn(html))
     if problems:
         sys.exit("Bill rows disagree:\n  " + "\n  ".join(problems))
-    data = {"rev": dt.date.today().isoformat(),
+    body = json.dumps([sorted(rates.values(), key=lambda r: r["code"]), items], sort_keys=True, ensure_ascii=False)
+    data = {"rev": dt.date.today().isoformat() + "-" + hashlib.sha1(body.encode()).hexdigest()[:8],
             "source": f"{a.bill.name} — MAK Contractors & Associates, Mall-35 MEP Final IPC-09 (May-2025); "
                       "material from the GRN Price Register",
             "rates": sorted(rates.values(), key=lambda r: r["code"]), "items": items}
+    old = block_of(html)
+    if old:
+        pr, pi = dict(old.get("prevRates", {})), dict(old.get("prevItems", {}))
+        new_r = {r["code"]: r for r in data["rates"]}
+        for r in old.get("rates", []):
+            n = new_r.get(r["code"])
+            if n and (n["rate"], n["date"], n["src"]) != (r["rate"], r["date"], r["src"]):
+                pr.setdefault(r["code"], [])
+                if [r["rate"], r["date"]] not in pr[r["code"]]:
+                    pr[r["code"]].append([r["rate"], r["date"]])
+        new_i = {i["id"]: i for i in data["items"]}
+        for i in old.get("items", []):
+            n = new_i.get(i["id"])
+            sig = [[m["ref"], m["qty"]] for m in i["M"]]
+            if n and sig != [[m["ref"], m["qty"]] for m in n["M"]]:
+                pi.setdefault(i["id"], [])
+                if sig not in pi[i["id"]]:
+                    pi[i["id"]].append(sig)
+        data["prevRates"], data["prevItems"] = pr, pi
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     if BLOCK_RE.search(html):
         html = BLOCK_RE.sub(lambda m: m.group(1) + blob + m.group(3), html)

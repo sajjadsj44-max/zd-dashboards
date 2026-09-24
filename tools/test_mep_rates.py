@@ -71,8 +71,21 @@ class Published(unittest.TestCase):
         """13 A socket DB-to-first-point: 80 ft 4 mm² + 40 ft CPC + 40 ft 1" conduit + box + socket."""
         it = next(i for i in self.d["items"] if i["id"] == "ME-307B")
         a = sum(m["qty"] * self.rates[m["ref"]]["rate"] for m in it["M"])
-        self.assertAlmostEqual(a, 80 * 42.63 + 40 * 42.63 + 40 * 18.1 + 200 + 865, places=2)
+        self.assertAlmostEqual(a, 80 * 88.09 + 40 * 88.09 + 40 * 18.1 + 200 + 865, places=2)
         self.assertEqual(self.rates["MAK-ME-307B"]["rate"], 982.125)
+
+    def test_price_list_lines(self):
+        """Pakistan Cables 03-Jun-2026 coil prices ÷ 90 metres, flagged as a published list (I)."""
+        for code, name, pcl, fast, gix in T.PRICE_LIST:
+            r = self.rates[code]
+            self.assertEqual(r["rate"], round(pcl / T.COIL_FT, 2), code)
+            self.assertEqual((r["date"], r["vs"]), ("2026-06-03", "I"), code)
+            self.assertIn("trade discount not applied", r["src"], code)
+        self.assertEqual(self.rates["MEP-W1C25"]["rate"], 58.98)      # 17,415 ÷ 295.276
+
+    def test_previous_versions_kept_for_saved_libraries(self):
+        self.assertIn([29.41, "2024-07-05"], self.d["prevRates"]["MEP-W1C25"])
+        self.assertIn("ME-504E", self.d["prevItems"])
 
     def test_no_script_breakout(self):
         raw = T.BLOCK_RE.search(self.html).group(2)
