@@ -124,6 +124,7 @@ class Grn:
 # ------------------------------------------------------------- derived material lines
 PCL_SRC, PCL_DATE = "Pakistan Cables suggested retail price list, 03-Jun-2026", "2026-06-03"
 FAST_SRC = "Fast Cables retail price list, 10-Jan-2026"
+TRADE_DISC = 0.30   # trade discount on cable list prices, supplied by Sajjad on 24-Sep-2026
 # (code, name, Pakistan Cables 90 m coil price, Fast Cables 90 m coil price or None, GRN index for comparison)
 PRICE_LIST = [
     ("MEP-W1C15", "Copper wire 1C × 1.5 mm² stranded Cu/PVC 450/750 V (BS 6004)", 10915, 11449, 289),
@@ -148,11 +149,14 @@ def derived(grn):
     out = {}
 
     for code, name, pcl, fast, gix in PRICE_LIST:
-        per = round(pcl / COIL_FT, 2)
-        src = (f"{PCL_SRC} — {name}, {rs(pcl)} per 90 metre coil (registered price, incl. 18% GST) "
-               f"÷ {COIL_FT:.3f} ft = {rs(per)}/Rft; suggested retail list price, trade discount not applied")
+        net = pcl * (1 - TRADE_DISC)
+        per = round(net / COIL_FT, 2)
+        src = (f"{PCL_SRC} — {name}, {rs(pcl)} per 90 metre coil (registered price, incl. 18% GST), "
+               f"less {TRADE_DISC:.0%} trade discount (supplied by Sajjad, 24-Sep-2026) = {rs(round(net, 2))} "
+               f"÷ {COIL_FT:.3f} ft = {rs(per)}/Rft")
         if fast:
-            src += f"; cross-check {FAST_SRC}: {rs(fast)} per coil = {rs(round(fast / COIL_FT, 2))}/Rft"
+            src += (f"; cross-check {FAST_SRC}: {rs(fast)} per coil, net "
+                    f"{rs(round(fast * (1 - TRADE_DISC) / COIL_FT, 2))}/Rft")
         if gix is not None:
             it = grn.items[gix]; l = it["last"]
             last = l["rate"] / COIL_FT if it["unit"] == "Coil" else l["rate"]

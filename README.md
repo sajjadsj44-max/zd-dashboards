@@ -259,9 +259,10 @@ item is built up as:
   1.5–70 mm², 2C 1.5 mm² speaker cable and RG-6 / RG-11 use the **Pakistan Cables suggested
   retail price list, 03-Jun-2026** (90 metre coil, registered price including 18% GST,
   ÷ 295.276 ft), cross-checked against the **Fast Cables retail price list, 10-Jan-2026**
-  (within about 5%). Both PDFs are in Google Drive. These are list prices with no trade
-  discount, about 2–2.4× the last GRNs (for example 1C 25 mm² 540.75/Rft against 227.10 on
-  Quadrangle GRN RCP-2297, 25-Jan-2025). Each line's remarks give the list price, the Fast
+  (within about 5%). Both PDFs are in Google Drive. A **30% trade discount** (supplied by
+  Sajjad, 24-Sep-2026; `TRADE_DISC` in `tools/mep_rates.py`) is taken off the list price,
+  giving for example 1C 25 mm² 378.52/Rft net (list 540.75; last GRN 227.10 on Quadrangle
+  RCP-2297, 25-Jan-2025). Each line's remarks give the list price, the discount, the Fast
   cross-check and the last GRN, and the line is marked `I` (market indication). Neither
   list covers 600/1000 V power cable, GI sheet, insulation or pipe, so those stay on GRN.
 - **B. Wastage:** cables 3%, pipes / conduit / duct / insulation 5%, fixtures 0%.
