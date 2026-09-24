@@ -238,6 +238,58 @@ RCP-1847, 24-Jul-2024 — latest GRN, no current Lahore rate found) and `FLYASH`
 (0, **ASSUMPTION — no dated source**). Until a dated fly-ash rate is entered the
 Al Rafiq items show one unrated row each and their rates are understated.
 
+## MEP rate analyses (Rate Analysis)
+
+Rate Analysis → Item Library carries **423 MEP items** (Electrical 129, HVAC 130,
+Plumbing 73, ELV 47, Fire Fighting 44), built on 24-Sep-2026 from the **MAK
+Contractors & Associates final bill for Mall-35 MEP** (`MAK Final Bill Checking.xlsx`,
+Final IPC-09, May-2025: electrical, plumbing, HVAC and all Non-BOQ additional scopes).
+
+MAK worked on an installation-only contract (MEP Works Agreement, 25-Sep-2023: material
+and equipment by the Employer; rates include 7.5% income tax and exclude PRA). So each
+item is built up as:
+
+- **A. Material:** the latest GRN from the GRN Price Register (same `GRN-…` codes its
+  **+ Rate DB** button uses), or an existing Rate Database line (`SAN-WC`, `SAN-WB`).
+  Pipe fittings and tray accessories are a share of the pipe / tray value, taken from the
+  Quadrangle receipts: PPRC 1.054, uPVC 0.980, MS 0.483, tray (without covers) 0.224.
+  Wire bought by the coil is converted at a 90 metre coil; insulation sheet and GI sheet
+  are converted to per Sft. Each conversion is written in the line's remarks.
+- **B. Wastage:** cables 3%, pipes / conduit / duct / insulation 5%, fixtures 0%.
+- **C. Labour:** `MAK-<item>` = the MAK rate for that item, read from the bill rows.
+  BOQ rates are dated 25-Sep-2023 (the contract). Non-BOQ rates are dated 31-May-2025,
+  because the certificate gives only the month.
+- **G / H:** house overhead 8% and profit 10%. MAK's rate already includes MAK's own
+  margin. Set both to 0 to get Zameen's direct cost.
+
+Per-point wiring quantities (for example 45 ft of run from the DB to a switch board, or 60
+ft of Cat-6 per data point) are assumptions stated in the line notes, because the bill's
+measurement sheets count points but do not give lengths. Materials with no GRN (97
+lines, for example PICVs, patch panels, speakers and 8"–12" MS pipe) are kept at 0 and
+marked `ASSUMPTION — no dated source`. The item then shows an unpriced gap. **133 of the
+138 priced materials come from GRNs more than 12 months old** (Quadrangle 2022–2025),
+and their remarks say "reconfirm before use". Employer-supplied equipment (panels,
+chillers, AHUs, FCUs, pumps, fans) is installation only. Where one exists, the note gives
+the Quadrangle GRN supply price for reference.
+
+Every item's spec names the bill item and row it came from. Its note gives the Mall-35
+contract and final-bill quantities. Where several bill rows share one rate, they are
+grouped into one item (all DBs at 14,550; all FCU sizes at 2,659.38). Non-BOQ rows that
+repeat a BOQ rate rounded to 2 dp were left out of those groups.
+
+The data is in the `<script type="application/json" id="raMepData">` block. Saved
+libraries get the new lines and items on their next load (missing codes only; nothing
+already in the library is changed). To rebuild from a newer bill or GRN register:
+
+```sh
+pip install openpyxl
+tools/mep_rates.py "MAK Final Bill Checking.xlsx"
+MAK_BILL="MAK Final Bill Checking.xlsx" python3 -m unittest tools/test_mep_rates.py
+```
+
+The build stops if any rows grouped into one item carry different rates. The bill
+workbook is not committed.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -307,6 +359,8 @@ drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
 tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Rates register
 tools/test_mrs_register.py          tests for the MRS loader
+tools/mep_rates.py                  build the MEP rate analyses from the MAK final bill + GRN register
+tools/test_mep_rates.py             tests for the MEP rate analyses
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
 .github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
