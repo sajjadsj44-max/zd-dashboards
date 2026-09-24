@@ -4,7 +4,9 @@
     tools/rate_watch.py            check, update the dashboard, open issues
     tools/rate_watch.py --dry-run  check and report only; change nothing
 
-Run every day by .github/workflows/rate-watch.yml.
+Run every day by .github/workflows/rate-watch.yml, which offers whatever this
+changes as a pull request on the rate-watch/update branch - the live dashboard
+only changes when that pull request is merged.
 
 KPK  - reads the Market Rate System page of the KPK Finance Department. When an
        edition newer than the one in the KPK MRS tab is listed, its PDF is
@@ -19,7 +21,7 @@ Punjab - reads the Punjab Finance Department market-rate and input-rate pages
        yet, and is shown on the KPK MRS tab under "Auto-watch".
 
 State lives in data/rate-watch.json. It changes only when something new is
-found, so a quiet day makes no commit. Exit status 1 means a source could not
+found, so a quiet day opens no pull request. Exit status 1 means a source could not
 be reached - GitHub then flags the run as failed, which is the alert.
 """
 import argparse

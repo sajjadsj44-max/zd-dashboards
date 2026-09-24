@@ -136,6 +136,30 @@ tools/kpk_mrs.py "KPK Market Rate System 2026 (1st Bi Annual).pdf" \
 
 The PDF is not committed.
 
+### Daily rate watch
+
+`.github/workflows/rate-watch.yml` runs `tools/rate_watch.py` every day at 06:30
+Pakistan time (and on demand from the Actions tab):
+
+- **KPK** — reads the KPK Finance Department's Market Rate System page. When an
+  edition newer than the one in the tab is listed, it downloads the PDF, parses it
+  and checks it (3,000+ items, 20+ chapters, 97%+ British/metric agreement). The
+  notification date comes from the notification; if that is a scan, the PDF's issue
+  date is used and the tab shows a "confirm" warning.
+- **Punjab (Lahore)** — reads the Punjab Finance Department market-rate and
+  input-rate pages and records every Lahore PDF. These are listed on the tab; their
+  rates are not parsed yet.
+
+Anything new is committed to the `rate-watch/update` branch and offered as a
+**pull request** — the live dashboard changes only when you merge it (check the
+deploy preview first). A new KPK edition that fails the checks opens an issue with
+the link instead and is retried daily. A run marked failed in the Actions tab means
+a source site could not be reached that day. State is kept in `data/rate-watch.json`.
+
+For the bot to open pull requests, enable *Settings → Actions → General → Allow
+GitHub Actions to create and approve pull requests* (otherwise it opens an issue
+pointing at the branch).
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -204,6 +228,8 @@ zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
+tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
+.github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```

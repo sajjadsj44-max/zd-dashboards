@@ -541,6 +541,11 @@ body[data-mod="cm"]{--head:#17375e}
     </div>
     <div class="rainfo" id="raKInfo">&nbsp;</div>
     <div class="racard">
+      <div class="hd"><div><h3>Auto-watch &mdash; government rate schedules</h3>
+        <div class="sub">Checked every day at 06:30 by the rate watch. A new KPK edition that parses and validates is offered as a pull request, and appears here once it is merged; anything it cannot load is raised as a GitHub issue.</div></div></div>
+      <div class="bd" id="raKWatch" style="font-size:12px;line-height:1.6">Loading status&hellip;</div>
+    </div>
+    <div class="racard">
       <div class="hd"><div><h3>Item types &mdash; chapters</h3>
         <div class="sub">Every chapter of the schedule, kept separate. Click one to list only its items.</div></div></div>
       <div class="bd" id="raKChips" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:8px"></div>
@@ -2281,6 +2286,40 @@ body[data-mod="cm"]{--head:#17375e}
     raCsv("KPK_MRS_"+md.edition.replace(/[^A-Za-z0-9]+/g,"_").replace(/_+$/,"")+"_"+(m?"Metric":"British")+"_"+raToday()+".csv", rows);
   }
 
+  var REPO="sajjadsj44-max/zd-dashboards", watched=false;
+  function watch(){
+    if(watched) return; watched=true; load();
+    var box=el("raKWatch"), md=K.meta||{}, st=null, run=null, pr=null, pend=3;
+    function a(u,t){ return '<a href="'+raEsc(u)+'" target="_blank" rel="noopener">'+raEsc(t)+'</a>'; }
+    function get(u,f){ fetch(u,{cache:"no-store"}).then(function(r){ return r.ok?r.json():null; }).then(f).catch(function(){}).then(done); }
+    function done(){
+      if(--pend) return;
+      var h='<div><b>KPK MRS</b> &mdash; showing <b>'+raEsc(md.edition||"none")+'</b>'+(md.notified?', dated '+dmy(md.notified):'')+
+        (md.url?' &middot; '+a(md.url,"source"):'')+'</div>';
+      if(md.dateNote) h+='<div style="color:#a8760a">&#9888; '+raEsc(md.dateNote)+'</div>';
+      if(st&&st.kpk) h+='<div>Newest edition listed by the KPK Finance Department: '+(st.kpk.newestUrl?a(st.kpk.newestUrl,st.kpk.newest):raEsc(st.kpk.newest||"?"))+
+        (st.kpk.failed?' &mdash; <span class="vstat A">could not be loaded automatically, see GitHub issues</span>':'')+'</div>';
+      if(pr) h+='<div style="margin-top:4px"><span class="vstat I">update waiting</span> '+a(pr.html_url,"Pull request #"+pr.number+": "+pr.title)+' &mdash; merge it to publish.</div>';
+      var lh=st&&st.punjab&&st.punjab.lahore||[];
+      h+='<div style="margin-top:6px"><b>Punjab (Lahore)</b> &mdash; '+(lh.length
+        ? 'PDFs found on the Punjab Finance Department site (not parsed into the dashboard yet):</div><ul style="margin:2px 0 0 18px">'+
+          lh.slice().sort(function(x,y){ return y.firstSeen.localeCompare(x.firstSeen); }).map(function(x){
+            return '<li>'+a(x.url,x.title)+' <span style="color:var(--muted)">'+raEsc(x.kind)+' &middot; first seen '+dmy(x.firstSeen)+'</span></li>'; }).join("")+'</ul>'
+        : 'nothing recorded yet.</div>');
+      h+='<div style="margin-top:6px;color:var(--muted)">'+(run
+        ? 'Last check: '+dmy(run.created_at.slice(0,10))+' '+run.created_at.slice(11,16)+' UTC &mdash; '+
+          (run.conclusion==="success"?'all sources reached':run.conclusion==="failure"?'<span style="color:var(--red)">a source could not be reached</span>':raEsc(run.status))+
+          ' &middot; '+a(run.html_url,"run log")
+        : 'Last check: not available yet (the watch has not run, or GitHub could not be reached).')+'</div>';
+      box.innerHTML=h;
+    }
+    get("../data/rate-watch.json", function(j){ st=j; });
+    get("https://api.github.com/repos/"+REPO+"/actions/workflows/rate-watch.yml/runs?branch=main&per_page=10",
+      function(j){ run=j&&(j.workflow_runs||[]).filter(function(x){ return x.event!=="pull_request"; })[0]||null; });
+    get("https://api.github.com/repos/"+REPO+"/pulls?state=open&head=sajjadsj44-max:rate-watch/update",
+      function(j){ pr=j&&j[0]||null; });
+  }
+
   function reset(){ SHOWN=PAGE; render(); }
   function init(){
     if(!el("rav-mrs")) return;
@@ -2304,7 +2343,9 @@ body[data-mod="cm"]{--head:#17375e}
       else if(t.dataset.mrsCh){ var c=el("raKChap"); c.value=c.value===t.dataset.mrsCh?"":t.dataset.mrsCh; reset(); }
     });
     var b=document.querySelector('#raSub button[data-rv="mrs"]');
-    if(b) b.addEventListener("click", function(){ setTimeout(render,0); });
+    if(b) b.addEventListener("click", function(){ setTimeout(function(){ render(); watch(); },0); });
+    var n=document.querySelector('[data-rvgo="mrs"]');
+    if(n) n.addEventListener("click", function(){ setTimeout(watch,0); });
   }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
