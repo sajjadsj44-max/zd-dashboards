@@ -7,3 +7,5 @@ node_modules/
 
 # scratch
 .work/
+.rate-watch-msg
+__pycache__/

@@ -147,37 +147,49 @@ def chapters(doc):
     return {k: v.most_common(1)[0][0] for k, v in names.items()}
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("pdf", type=Path)
-    ap.add_argument("--html", type=Path, default=DEFAULT_HTML)
-    ap.add_argument("--edition", default="MRS-2025 (1st Bi-Annual)")
-    ap.add_argument("--notified", default="2025-10-07", help="notification date, YYYY-MM-DD")
-    ap.add_argument("--notification", default="No.MRS/FD/4-2/NOTIFICATION/2025")
-    a = ap.parse_args()
+def check(items):
+    """Share of items whose British and metric composite rates agree with the unit
+    conversion, over the items where both units are a known pair."""
+    pairs = {("100 Cft", "m3"): 2.8317, ("100 Sft", "m2"): 9.2903, ("Rft", "m"): 0.3048,
+             ("Sft", "m2"): 0.0929, ("Each", "Each"): 1, ("1000 Cft", "m3"): 28.317,
+             ("100 Rft", "m"): 30.48}
+    n = ok = 0
+    for x in items:
+        k = pairs.get((x["ubr"], x["umt"]))
+        if k and x["cmt"] > 0:
+            n += 1
+            ok += abs(x["cbr"] / x["cmt"] / k - 1) <= 0.03
+    return ok / n if n else 0.0
 
-    html = a.html.read_text(encoding="utf-8")
+
+def build(pdf, html_path=DEFAULT_HTML, edition="MRS-2025 (1st Bi-Annual)", notified="2025-10-07",
+          notification="No.MRS/FD/4-2/NOTIFICATION/2025", url="", date_note="", min_items=3000):
+    """Parse `pdf` and write it into the raMrsData block. Raises ValueError, leaving the
+    dashboard untouched, when the result does not look like a complete schedule."""
+    html = Path(html_path).read_text(encoding="utf-8")
     m = BLOCK_RE.search(html)
     if not m:
-        sys.exit(f"{a.html}: no raMrsData block found")
+        raise ValueError(f"{html_path}: no raMrsData block found")
 
-    doc = pymupdf.open(a.pdf)
+    doc = pymupdf.open(pdf)
     items = parse(doc)
     chaps = chapters(doc)
     dist, merged = factors(doc)
-    seen = Counter(x["code"] for x in items)
-    dupes = [c for c, n in seen.items() if n > 1]
-    if dupes:
-        print("warning: repeated item codes:", ", ".join(dupes[:20]))
+    agree = check(items)
+    if len(items) < min_items or len(chaps) < 20 or agree < 0.97:
+        raise ValueError(f"{Path(pdf).name}: {len(items)} items, {len(chaps)} chapters, "
+                         f"{agree:.1%} British/metric agreement - does not look like a complete MRS")
 
     data = {
-        "edition": a.edition,
-        "notified": a.notified,
-        "notification": a.notification,
+        "edition": edition,
+        "notified": notified,
+        "notification": notification,
+        "dateNote": date_note,
         "issuer": "MRS Cell, Finance Department, Government of Khyber Pakhtunkhwa",
         "base": "Peshawar",
         "note": "Composite rates include 23.5% (4% KP sales tax, 2% overheads, 7.5% income tax, 10% contractor's profit).",
-        "source": a.pdf.name,
+        "source": Path(pdf).name,
+        "url": url,
         "chapters": [[k, chaps[k]] for k in sorted(chaps)],
         "districts": dist,
         "merged": merged,
@@ -187,10 +199,36 @@ def main():
     }
     blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
     html = html[:m.start(2)] + blob + html[m.end(2):]
-    a.html.write_text(html, encoding="utf-8")
+    Path(html_path).write_text(html, encoding="utf-8")
     zero = sum(1 for x in items if not x["cbr"] and not x["cmt"])
-    print(f"{len(items)} items in {len(chaps)} chapters ({zero} without a rate), "
-          f"{len(dist)} district and {len(merged)} merged-area factors")
+    return (f"{len(items)} items in {len(chaps)} chapters ({zero} without a rate), "
+            f"{agree:.1%} British/metric agreement, {len(dist)} district and {len(merged)} merged-area factors")
+
+
+def current(html_path=DEFAULT_HTML):
+    """The edition metadata now embedded in the dashboard, or {}."""
+    m = BLOCK_RE.search(Path(html_path).read_text(encoding="utf-8"))
+    try:
+        d = json.loads(m.group(2)) if m and m.group(2).strip() else {}
+    except ValueError:
+        d = {}
+    d.pop("items", None)
+    return d
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("pdf", type=Path)
+    ap.add_argument("--html", type=Path, default=DEFAULT_HTML)
+    ap.add_argument("--edition", default="MRS-2025 (1st Bi-Annual)")
+    ap.add_argument("--notified", default="2025-10-07", help="notification date, YYYY-MM-DD")
+    ap.add_argument("--notification", default="No.MRS/FD/4-2/NOTIFICATION/2025")
+    ap.add_argument("--url", default="", help="where the PDF was downloaded from")
+    a = ap.parse_args()
+    try:
+        print(build(a.pdf, a.html, a.edition, a.notified, a.notification, a.url))
+    except ValueError as e:
+        sys.exit(str(e))
 
 
 if __name__ == "__main__":
