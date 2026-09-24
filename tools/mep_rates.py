@@ -357,7 +357,7 @@ ITEMS = [
     ("ME-506D", E, "Containment", "Fabricating, supplying and installing 16 SWG perforated GI cable tray / ladder 12\" × 3\" with hangers and supports, complete in all respects", "Rft", "E:271,272,273,287,293,294", tray(777), WAST["pipe"], "15\" tray and roof trays billed at the 12\" rate are grouped here; 12\"×3\" GRN used."),
     ("ME-506E", E, "Containment", "Fabricating, supplying and installing 16 SWG perforated GI cable tray 18\" × 3\" with hangers and supports, complete in all respects", "Rft", "E:274,295", tray(452), WAST["pipe"], ""),
     ("ME-506F", E, "Containment", "Fabricating, supplying and installing 16 SWG perforated GI cable tray / ladder 24\" × 3\" with hangers and supports, complete in all respects", "Rft", "E:275,286", tray(453), WAST["pipe"], ""),
-    ("ME-506G", E, "Containment", "Dismantling and re-installing cable tray with additional bend under beam, including cables on it, complete in all respects", "Rft", "E:570,571", [], 0, "4\"×3\" and 6\"×3\" rate; 9\" = 269, 12\" = 284, 18\" = 291 per Rft in the same bill section."),
+    ("ME-506G", E, "Containment", "Dismantling and re-installing cable tray with additional bend under beam, including cables on it, complete in all respects", "Rft", "E:570,571", [], 0, "4\"×3\" and 6\"×3\" tray. 9\", 12\" and 18\" tray are ME-506H, ME-506J and ME-506K."),
     ("ME-507", E, "Accessories", "Supplying and laying 3.5 mm insulation rubber mat 75 Shore A in MV / LV rooms, complete in all respects", "Sft", "E:296", [("MEP-Z-MAT", 1, "")], 5, ""),
     # ---------------------------------------------------------------- busway
     ("ME-601", E, "Busway", "Installing, testing and commissioning Employer-supplied 2500 A sandwich busway straight length, complete in all respects", "Rft", "E:318", [], 0, ""),
@@ -396,7 +396,7 @@ ITEMS = [
     ("MX-1210", ELV, "Networking", "Supplying, installing and terminating Cat-6 patch panel 24 / 16-port, complete in all respects", "Nos", "E:461,500", [("MEP-Z-PP24", 1, "")], 0, ""),
     ("MX-1211", ELV, "Networking", "Supplying, installing and terminating Cat-6 patch panel 8-port, complete in all respects", "Nos", "E:462,501", [("MEP-Z-PP8", 1, "")], 0, ""),
     ("MX-1212", ELV, "Networking", "Supplying and fixing Cat-6 patch cord 1 m long, complete in all respects", "Nos", "E:464,503", [("MEP-Z-PCORD", 1, "")], 0, ""),
-    ("MX-1213", ELV, "Networking", "Supplying and installing 42U data cabinet with accessories, complete in all respects", "Nos", "E:467", [("MEP-Z-RACK42", 1, "")], 0, ""),
+    ("MX-1213", ELV, "Networking", "Supplying and installing 42U data cabinet with accessories (network / PA rack), complete in all respects", "Nos", "E:467,485", [("MEP-Z-RACK42", 1, "")], 0, ""),
     ("MX-1214", ELV, "Networking", "Supplying and installing 24U data cabinet with accessories, complete in all respects", "Nos", "E:510", [("MEP-Z-RACK24", 1, "")], 0, ""),
     ("MX-1215", ELV, "Networking", "Supplying, installing, testing and commissioning wireless access point, complete in all respects", "Nos", "E:491", [("MEP-Z-WAP", 1, "")], 0, ""),
     ("MX-1216", ELV, "Networking", "Providing data / telephone outlet wiring, Cat-6 UTP in 1\" PVC conduit to patch panel / POE switch, including RJ45 outlet plate and 16 SWG back box, complete in all respects", "Point", "E:505,529",
@@ -406,7 +406,7 @@ ITEMS = [
     ("MX-1218", ELV, "Networking", "Supplying and laying Cat-6A data cable in riser, complete in all respects", "Rft", "N:146", [("MEP-CAT6A", 1, "")], WAST["cable"], ""),
     ("MX-1301", ELV, "Public address", "Supplying, installing and commissioning 6 W ceiling speaker, complete in all respects", "Nos", "E:473", [("MEP-Z-SPK6", 1, "")], 0, ""),
     ("MX-1302", ELV, "Public address", "Supplying, installing and commissioning 20 W wall-mounted speaker, complete in all respects", "Nos", "E:474", [("MEP-Z-SPK20", 1, "")], 0, ""),
-    ("MX-1303", ELV, "Public address", "Installing, testing and commissioning PA head-end equipment (4 × 4 channel amplifier, music system), complete in all respects", "Job", "E:476", [], 0, "Music system install 3,637.50 (bill row 479)."),
+    ("MX-1303", ELV, "Public address", "Installing, testing and commissioning PA head-end equipment (4 × 4 channel amplifier), complete in all respects", "Job", "E:476", [], 0, "Music system is MX-1308."),
     ("MX-1304", ELV, "Public address", "Installing, testing and commissioning 60 W integrated power amplifier, complete in all respects", "Nos", "E:477", [], 0, ""),
     ("MX-1305", ELV, "Public address", "Installing and commissioning 10-zone remote microphone, complete in all respects", "Nos", "E:478", [], 0, ""),
     ("MX-1306", ELV, "Public address", "Providing speaker wiring, 2C 1.5 mm² PVC/PVC in 1\" PVC conduit, complete in all respects", "Point", "E:481",
@@ -414,7 +414,7 @@ ITEMS = [
     ("MX-1307", ELV, "Public address", "Providing speaker wiring through wall-mounted volume controller, including controller and back box, complete in all respects", "Point", "E:482",
      [("MEP-SPK2C15", 40, "40 ft speaker cable per point (quantity ASSUMPTION)"), ("COND1", 40, "40 ft conduit per point (quantity ASSUMPTION)"), ("MEP-Z-VOLC", 1, "volume controller"), (321, 1, "back box")], WAST["cable"], ""),
     ("MX-1501", ELV, "Telephone", "Supplying, fabricating, installing and commissioning 300-pair MDF, complete in all respects", "Nos", "E:517", [], 0, ""),
-    ("MX-1502", ELV, "Telephone", "Supplying and installing telephone DB (10 / 30 / 40 pair), complete in all respects", "Nos", "E:520", [], 0, "30 pair 1,818.75; 40 pair 2,546.25 (bill rows 521–522)."),
+    ("MX-1502", ELV, "Telephone", "Supplying and installing telephone DB (10 pair), complete in all respects", "Nos", "E:520", [], 0, "30 pair is MX-1503; 40 pair is MX-1504."),
     ("MX-1601", ELV, "RFID door lock", "Installing, testing and commissioning offline RF door lock with RFID reader, complete in all respects", "Nos", "E:538", [], 0, ""),
     ("MX-1602", ELV, "RFID door lock", "Installing and commissioning door-lock / hotel management desktop server, complete in all respects", "Job", "E:540", [], 0, ""),
     ("MX-1701", ELV, "MATV", "Supplying and installing MATV 8-way / 4-way splitter, complete in all respects", "Nos", "E:547,548", [("MEP-Z-SPLIT", 1, "")], 0, ""),
@@ -426,7 +426,7 @@ ITEMS = [
     ("MX-1706", ELV, "MATV", "Supplying and installing 16 SWG MS TV junction box, complete in all respects", "Nos", "E:557", [], 0, ""),
     # ---------------------------------------------------------------- plumbing fixtures
     ("MP-101", PL, "Sanitary ware", "Providing and fixing European WC with muslim shower, tee stop cock, flush and connections, complete in all respects", "Nos", "P:9", [("SAN-WC", 1, "WC suite rate line of the Rate Database")], 0, ""),
-    ("MP-102", PL, "Core cutting", "Cutting RCC slab with core cutter for pipe crossings, complete in all respects", "Nos", "P:11", [], 0, "Size bands in the equipment section: 2\"–3\" 709.31; 4\"–5\" 800.25; 6\" 920.29; 8\" 1,673.25."),
+    ("MP-102", PL, "Core cutting", "Cutting RCC slab with core cutter for pipe crossings, complete in all respects", "Nos", "P:11", [], 0, "Core cutting by size band is MP-102A to MP-102D."),
     ("MP-103", PL, "Sanitary ware", "Providing and fixing under-counter wash hand basin vanity with basin mixer, waste coupling, bottle trap and tee stop cock, complete in all respects", "Nos", "P:14", [("SAN-WB", 1, "wash basin set rate line of the Rate Database")], 0, ""),
     ("MP-104", PL, "Sanitary ware", "Providing and fixing pedestal wash hand basin with basin mixer, waste coupling and tee stop cock, complete in all respects", "Nos", "P:22",
      [(1723, 1, "basin with pedestal"), (384, 1, "basin mixer"), (1583, 1, "tee stop cock"), (1727, 1, "waste coupling")], 0, ""),
@@ -580,7 +580,7 @@ ITEMS += [
     ("MH-221B", HV, "Valves", "Supplying and installing flanged ductile iron gate valve 3\", complete in all respects", "Nos", "H:147", [(1053, 1, "")], 0, ""),
     ("MH-221C", HV, "Valves", "Supplying and installing flanged ductile iron gate valve 4\", complete in all respects", "Nos", "H:148", [(1054, 1, "")], 0, ""),
     ("MH-221D", HV, "Valves", "Supplying and installing flanged gate valve / PICV / check valve / Y-strainer / bellow connector 6\", complete in all respects", "Nos", "H:125,149", [(1055, 1, "6\" MS gate valve GRN")], 0, "6\" check valve, Y-strainer and bellow connector are billed at 2,446.63 — see MH-221F."),
-    ("MH-221E", HV, "Valves", "Supplying and installing flanged ductile iron gate valve 8\" / 10\", complete in all respects", "Nos", "H:150", [("MEP-Z-GV8", 1, "")], 0, "10\" valve installation 4,255 (bill row 151)."),
+    ("MH-221E", HV, "Valves", "Supplying and installing flanged ductile iron gate valve 8\", complete in all respects", "Nos", "H:150", [("MEP-Z-GV8", 1, "")], 0, "10\" valve is MH-221H."),
     ("MH-221F", HV, "Valves", "Supplying and installing 6\" swing check valve / Y-strainer / bellow-type flexible connector, complete in all respects", "Nos", "H:154,157,159", [(1768, 1, "6\" Y-strainer GRN used as the reference fitting")], 0, ""),
     ("MH-221G", HV, "Valves", "Installing 4\" strainer / check valve in pump room, complete in all respects", "Nos", "N:268,269", [(1767, 1, "4\" Y-strainer GRN")], 0, ""),
     ("MH-223", HV, "Accessories", "Supplying and installing 1\" drain cock, complete in all respects", "Nos", "H:161", [("MEP-Z-DCOCK", 1, "")], 0, ""),
@@ -598,7 +598,7 @@ for rows, od, sz in [("175", 1.05, '3/4"'), ("176", 1.315, '1"'), ("177", 1.66, 
                   f"Supplying and installing elastomeric closed-cell insulation with fibreglass cloth on chilled water pipe {sz}, complete in all respects",
                   "Rft", f"H:{rows}", ins(od, sz), WAST["pipe"], "Material taken at 3/4\" sheet; thicker schedules cost more."))
 ITEMS += [
-    ("MH-232A", HV, "Insulation", "Supplying and installing 1/4\" polyethylene (Jumbolon) insulation with GI tape on condensate pipe 1\"–2\", complete in all respects", "Rft", "H:189", [("MEP-Z-PE6", 1, "")], WAST["pipe"], "1\" pipe 90.42; 3\" pipe 117.01 (bill rows 188, 190)."),
+    ("MH-232A", HV, "Insulation", "Supplying and installing 1/4\" polyethylene (Jumbolon) insulation with GI tape on condensate pipe 2\", complete in all respects", "Rft", "H:189", [("MEP-Z-PE6", 1, "")], WAST["pipe"], "1\" pipe is MH-232B; 3\" pipe is MH-232C."),
     ("MH-233", HV, "Insulation", "Supplying and installing 26 gauge GI sheet cladding over exposed duct and pipe insulation, complete in all respects", "Sft", "H:191", [("MEP-GI26", 1.1, "1.10 Sft of sheet per Sft (laps and seams)")], WAST["pipe"], ""),
     # ---------------------------------------------------------------- air distribution
     ("MH-301", HV, "Ductwork", "Supplying, fabricating and installing G-60 / Z-180 GI sheet ductwork 26 gauge with splitter dampers, bracings and hangers, complete in all respects", "Sft", "H:208,209", [("MEP-GI26", 1.15, "1.15 Sft of sheet per Sft of duct surface (seams, locks, stiffeners — quantity ASSUMPTION)")], WAST["pipe"], "Measured on duct surface area. Hangers and sealant not included in material."),
@@ -707,6 +707,28 @@ NB = [
     ("MN-H28", HV, "Ventilation", "Shifting and installing fresh air fan 5,000 CFM in plant room", "Nos", "N:254"),
     ("MN-H29", HV, "Dismantling", "Dismantling gate valve 6\" / fan coil unit", "Nos", "N:290,291"),
     ("MN-H30", HV, "Accessories", "Installing PRV 3/4\"", "Nos", "N:263"),
+    ("ME-210", E, "Distribution", "Installing, terminating and testing DB in server room / admin office", "Nos", "N:283,284"),
+    ("ME-342", E, "Power points", "Providing wiring of 4 mm² power circuit (Scope #07)", "Nos", "N:235"),
+    ("ME-505G", E, "Containment", "Installing 1\" PVC conduit run (Scope #07, billed per Nos)", "Nos", "N:232"),
+    ("ME-401R", E, "Lighting", "Installing Employer-supplied 2'×2' ceiling panel light, floor-mounted concealed light or bedside light", "Nos", "N:255,256,280"),
+    ("ME-401S", E, "Lighting", "Installing Employer-supplied spot light in external area", "Nos", "N:282"),
+    ("MN-P12", PL, "Valves", "Installing ball valve 1/2\" (20 mm) on PPR pipe", "Nos", "N:210"),
+    ("MN-P13", PL, "Valves", "Installing gate valve 63 mm", "Nos", "N:264"),
+    ("MN-P14", PL, "Accessories", "Installing bellow-type flexible connector in pump room", "Nos", "N:270"),
+    ("MN-F16", FF, "Dismantling", "Dismantling MS pipe 1\" (4th floor kitchen area, Scope #02)", "Rft", "N:88"),
+    ("MN-F17", FF, "Dismantling", "Dismantling MS pipe 1\" (25 mm), Scope #05 approved rate", "Rft", "N:154"),
+    ("MN-F18", FF, "Dismantling", "Dismantling MS pipe 1-1/2\" (40 mm), Scope #05 approved rate", "Rft", "N:155"),
+    ("MN-F19", FF, "Dismantling", "Dismantling MS pipe 2\" / 2-1/2\" (50–63 mm), Scope #05 approved rate", "Rft", "N:156,157"),
+    ("MN-F20", FF, "Rework", "Re-installing MS pipe 1\" (25 mm), Scope #05 approved rate", "Rft", "N:159"),
+    ("MN-F21", FF, "Rework", "Re-installing MS pipe 1-1/2\" (40 mm), Scope #05 approved rate", "Rft", "N:160"),
+    ("MN-F22", FF, "Rework", "Re-installing MS pipe 2\" (50 mm), Scope #05 approved rate", "Rft", "N:161"),
+    ("MN-F23", FF, "Rework", "Re-installing MS pipe 2-1/2\" (63 mm), Scope #05 approved rate", "Rft", "N:162"),
+    ("MN-F24", FF, "Rework", "Re-installing MS pipe 6\" (150 mm), Scope #06 approved rate", "Rft", "N:200"),
+    ("MN-F25", FF, "Rework", "Re-installing dual-compartment fire hose cabinet (approved rate)", "Nos", "N:165"),
+    ("MN-F26", FF, "Valves", "Installing alarm check valve assembly 6\" in pump room", "Nos", "N:276"),
+    ("MN-H34", HV, "Dismantling", "Dismantling chilled water pipe 2-1/2\" (level 06)", "Rft", "N:31"),
+    ("MN-H35", HV, "Ventilation", "Shifting and installing fresh air fan 1,500 CFM / exhaust air fan 1,800 CFM (Scope #05)", "Nos", "N:176,177"),
+    ("MN-H36", HV, "Insulation", "Installing rock wool insulation in 3rd floor restaurant area", "Sft", "N:287"),
 ]
 for code, cat, sub, d, unit, rows in NB:
     ITEMS.append((code, cat, sub, d + ", complete in all respects", unit, rows, [], 0, "Labour-only item (Non-BOQ)."))
@@ -718,6 +740,28 @@ ITEMS += [
      "MAK rate is supply and install; compare GRN rock wool 3\" at 139.42/Sft (MH-230)."),
     ("MN-H33", HV, "Split AC", "Supplying and installing additional copper pipe pair with insulation for split AC (beyond 10 Rft per unit), complete in all respects", "Rft", "N:289",
      [(522, 1, '1/2" copper pipe'), (523, 1, '1/4" copper pipe'), (552, 1, '1/2" insulation 9 mm'), (543, 1, '1/4" insulation 9 mm')], WAST["pipe"], "Pipe pair for 1.5 ton unit."),
+]
+
+ITEMS += [
+    ("ME-209", E, "Distribution", "Installing, terminating, testing and commissioning Employer-supplied 1st floor common distribution board DBC-1F, complete in all respects", "Nos", "E:94", [], 0,
+     "Billed at the panel-board rate (40,012.50), not the 14,550 DB rate of ME-207."),
+    ("ME-506H", E, "Containment", "Dismantling and re-installing cable tray 9\"×3\" with additional bend under beam, including cables on it, complete in all respects", "Rft", "E:572", [], 0, ""),
+    ("ME-506J", E, "Containment", "Dismantling and re-installing cable tray 12\"×3\" with additional bend under beam, including cables on it, complete in all respects", "Rft", "E:573", [], 0, ""),
+    ("ME-506K", E, "Containment", "Dismantling and re-installing cable tray 18\"×3\" with additional bend under beam, including cables on it, complete in all respects", "Rft", "E:574", [], 0, ""),
+    ("MX-1219", ELV, "Networking", "Supplying and installing 12U data cabinet with accessories, complete in all respects", "Nos", "E:468,511", [("MEP-Z-RACK12", 1, "")], 0, ""),
+    ("MX-1220", ELV, "Networking", "Supplying and installing 16 SWG MS ELV junction box for TV, telephone and data in shops, concealed in wall, with earthing terminal, complete in all respects", "Nos", "E:507", [(648, 1, "")], 0, ""),
+    ("MX-1308", ELV, "Public address", "Installing, testing and commissioning music system with microphone and USB input, complete in all respects", "Nos", "E:479", [], 0, ""),
+    ("MX-1503", ELV, "Telephone", "Supplying and installing telephone DB (30 pair), complete in all respects", "Nos", "E:521", [], 0, ""),
+    ("MX-1504", ELV, "Telephone", "Supplying and installing telephone DB (40 pair), complete in all respects", "Nos", "E:522", [], 0, ""),
+    ("MX-1505", ELV, "Telephone", "Installing, testing and commissioning EPABX telephone exchange (4 external / 128 extension lines), complete in all respects", "Job", "E:532", [], 0, ""),
+    ("MP-102A", PL, "Core cutting", "Core cutting of RCC for pipe crossing 2\"–3\" dia (core sealant not included), complete in all respects", "Nos", "P:260", [], 0, ""),
+    ("MP-102B", PL, "Core cutting", "Core cutting of RCC for pipe crossing 4\"–5\" dia (core sealant not included), complete in all respects", "Nos", "P:261", [], 0, ""),
+    ("MP-102C", PL, "Core cutting", "Core cutting of RCC for pipe crossing 6\" dia (core sealant not included), complete in all respects", "Nos", "P:262", [], 0, ""),
+    ("MP-102D", PL, "Core cutting", "Core cutting of RCC for pipe crossing 8\" dia (core sealant not included), complete in all respects", "Nos", "P:263", [], 0, ""),
+    ("MH-218D", HV, "Condensate piping", "Supplying and installing uPVC Class E condensate pipe 3\" with fittings and hangers, complete in all respects", "Rft", "H:106", [("MEP-Z-UE3", 1, "")], WAST["pipe"], ""),
+    ("MH-221H", HV, "Valves", "Supplying and installing flanged ductile iron gate valve 10\", complete in all respects", "Nos", "H:151", [("MEP-Z-GV10", 1, "")], 0, ""),
+    ("MH-232B", HV, "Insulation", "Supplying and installing 1/4\" polyethylene (Jumbolon) insulation with GI tape on condensate pipe 1\", complete in all respects", "Rft", "H:188", [("MEP-Z-PE6", 1, "")], WAST["pipe"], ""),
+    ("MH-232C", HV, "Insulation", "Supplying and installing 1/4\" polyethylene (Jumbolon) insulation with GI tape on condensate pipe 3\", complete in all respects", "Rft", "H:190", [("MEP-Z-PE6", 1, "")], WAST["pipe"], ""),
 ]
 
 # Materials with no GRN: (code, name, unit)
@@ -761,6 +805,8 @@ ZERO = {
     "MEP-Z-ALF": ("Washable aluminium filter 2\"", "Sft"), "MEP-Z-DIFF": ("Aluminium air diffuser", "Sft"),
     "MEP-Z-MESH": ("Wire mesh", "Sft"), "MEP-Z-RLG": ("Return linear grille", "Rft"),
     "MEP-Z-FDC": ("Flexible duct connector", "Rft"),
+    "MEP-Z-RACK12": ("Data cabinet 12U", "Nos"), "MEP-Z-UE3": ("uPVC Class E pipe 3\"", "Rft"),
+    "MEP-Z-GV10": ("Flanged gate valve 10\"", "Nos"),
 }
 for k in ("075", "100", "125", "150", "200"):
     sz = {"075": '3/4"', "100": '1"', "125": '1-1/4"', "150": '1-1/2"', "200": '2"'}[k]
