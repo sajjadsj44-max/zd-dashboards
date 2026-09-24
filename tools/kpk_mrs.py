@@ -12,7 +12,7 @@ page from its own header row, and numbers are read exactly as printed - nothing
 is recalculated. The district location factors (the "Area Factor" page and the
 merged-area sub-zone table) are read from the front matter.
 
-The whole schedule replaces the `<script type="application/json" id="raMrsData">`
+The whole schedule replaces the `<script type="application/json" id="raKpkData">`
 block of the dashboard, so re-running with a newer bi-annual edition simply
 swaps it in. The PDF itself is not committed.
 """
@@ -31,7 +31,7 @@ except ImportError:
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_HTML = ROOT / "zameen-developments" / "index.html"
 BLOCK_RE = re.compile(
-    r'(<script type="application/json" id="raMrsData">)(.*?)(</script>)', re.S)
+    r'(<script type="application/json" id="raKpkData">)(.*?)(</script>)', re.S)
 CODE = re.compile(r"^\d{2}-\d{2,3}(-[A-Za-z0-9]+)*$")
 SPEC_TOK = re.compile(r"^(\d+(\.\d+)*[A-Za-z]?,?|,|&)$")
 NAMES = ["code", "desc", "ubr", "lbr", "cbr", "umt", "lmt", "cmt", "spec"]
@@ -164,12 +164,12 @@ def check(items):
 
 def build(pdf, html_path=DEFAULT_HTML, edition="MRS-2025 (1st Bi-Annual)", notified="2025-10-07",
           notification="No.MRS/FD/4-2/NOTIFICATION/2025", url="", date_note="", min_items=3000):
-    """Parse `pdf` and write it into the raMrsData block. Raises ValueError, leaving the
+    """Parse `pdf` and write it into the raKpkData block. Raises ValueError, leaving the
     dashboard untouched, when the result does not look like a complete schedule."""
     html = Path(html_path).read_text(encoding="utf-8")
     m = BLOCK_RE.search(html)
     if not m:
-        raise ValueError(f"{html_path}: no raMrsData block found")
+        raise ValueError(f"{html_path}: no raKpkData block found")
 
     doc = pymupdf.open(pdf)
     items = parse(doc)

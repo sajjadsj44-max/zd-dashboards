@@ -124,7 +124,7 @@ Composite rates include 23.5% (4% KP sales tax, 2% overheads, 7.5% income tax,
 market rates — a benchmark, not a substitute for a dated Lahore quote or GRN.
 
 The data is embedded in `zameen-developments/index.html` (the
-`<script type="application/json" id="raMrsData">` block). To load a newer
+`<script type="application/json" id="raKpkData">` block). To load a newer
 bi-annual edition:
 
 ```sh
