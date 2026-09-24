@@ -160,6 +160,82 @@ For the bot to open pull requests, enable *Settings → Actions → General → 
 GitHub Actions to create and approve pull requests* (otherwise it opens an issue
 pointing at the branch).
 
+## Punjab MRS Rates (Rate Analysis)
+
+QS Cost Control → **Punjab MRS Rates** is a read-only register of the Punjab
+Finance Department's **Market Rates System (MRS)**, next to the GRN Price
+Register. Loaded on 23-Sep-2026 from the **1st Bi-Annual 2026, District
+Rawalpindi** edition (valid 01-Jan-2026 to 30-Jun-2026; `Punjab rates
+385_20260110213957.pdf` from Google Drive): **1,539 rate lines** from the
+building-construction chapters — Loading/Unloading, Earthwork, Dismantling,
+Concrete, Brickwork, Stone Masonry, Roofing, Flooring, Surface Rendering, Wood
+Work, Painting & Varnishing, Plumbing/Sanitary/Gas, Iron Work and Miscellaneous.
+
+Each line shows the MRS labour and composite (labour + material) rate in house
+units — per 100 Sft, per 1000 Cft, per Cwt (→ Kg) and so on are converted — with
+the figure and unit as printed and its chapter, item, line and page, so it can
+be checked against the PDF. Search, filter by chapter, unit or metric check, and
+export CSV. **+ Rate DB** copies one line (composite or labour share) into the
+Rate Database as a market-indication (`I`) rate — a published schedule, not a PO
+or GRN — with location, effective date and the MRS reference in its remarks
+(`Punjab MRS 1st Bi-Annual 2026 (Rawalpindi), 01-Jan-2026 — Ch.6 item 9, line
+19 (Concrete), p.39; ...`). The register itself never changes the Rate Database
+or any analysis until a line is added that way.
+
+**Checked against the PDF.** MRS prints every rate twice on the same row, in
+British and metric units. The loader converts one to the other for every line:
+**1,453** lines agree, **26** are lines where the schedule's own two figures
+disagree (e.g. p.65 Multani tiles, 1,261.55 per Sft beside 4,137.80 per Sqm) —
+those carry a ⚠ check mark with the metric figure, and that note travels into
+the remarks if one is added to the Rate Database — and 60 use units that have
+no metric counterpart (Job, Point, Letter ...). Every figure was also found on
+its cited page by a second PDF reader.
+
+The edition's period has lapsed, so the tab says so: treat these as a benchmark
+and prefer a current, dated Lahore rate for a live BOQ (see `CLAUDE.md`). To
+load a newer edition or another district — edition, district, period and
+chapter pages are read from the PDF itself:
+
+```sh
+pip install pdfplumber                       # once
+tools/mrs_register.py MRS.pdf                # building chapters (default)
+tools/mrs_register.py MRS.pdf --chapters all # or e.g. 2-13,19,24,25,26
+python3 -m unittest tools/test_mrs_register.py          # parser tests
+MRS_PDF=MRS.pdf python3 -m unittest tools/test_mrs_register.py   # + end-to-end
+```
+
+Left out by default: Ch.1 Carriage — its mile and km bands are printed over each
+other in the PDF and cannot be read back reliably — Ch.5 Mortar (a material
+consumption table, no rates), and the non-building chapters (canals, sheet
+piling, roads, drainage, sewerage, wells, tubewells, electrical, HVAC; HVAC's
+table layout is different and reads as 0 lines even with `--chapters all`). The
+data lives in the `<script type="application/json" id="raMrsData">` block of
+`zameen-developments/index.html`.
+
+## Concrete design mixes (Rate Analysis)
+
+Rate Analysis → Item Library now carries **24 generated design-mix RCC items**
+(per Cft), built from two lab mix-design sheets received 23-Sep-2026:
+
+- **Al Rafiq Ready Mix — Summary of concrete mix design** (20 rows, 1000–9000 psi;
+  cement + fly ash, silica fume from 8000 psi, SP 224/150 or SP 534/40):
+  `RCC-DM-AR-<psi>`; the second 6500 and 7000 psi rows (10mm-heavy, SP 534/40)
+  are `RCC-DM-AR-6500B` / `-7000B`.
+- **Concrete Mix Design ACI-211** lab sheet (1500, 4000, 4500, 6000 psi):
+  `RCC-DM-ACI-<psi>`.
+
+Batch weights per m³ are held in `RA_DMIX` and converted per Cft (÷ 35.3147):
+cement ÷ 50 kg/bag; fly ash, silica and admixture in Kg; sand and crush in Cft
+from the Al Rafiq sheet's own CFT columns (46.65 kg/cft sand, 41.00 kg/cft
+crush — the same densities are used for the ACI sheet, flagged as an assumption);
+water as an optional allowance. Labour and plant follow nominal-mix RCC. Sand and
+crush sources can be changed on the item's parameter panel.
+
+Two rate lines were added: `ADMIX-SP` (FosPak SP 568, 185/kg, Quadrangle GRN
+RCP-1847, 24-Jul-2024 — latest GRN, no current Lahore rate found) and `FLYASH`
+(0, **ASSUMPTION — no dated source**). Until a dated fly-ash rate is entered the
+Al Rafiq items show one unrated row each and their rates are understated.
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -227,6 +303,8 @@ netlify.toml                        Netlify publish settings and cache headers
 zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
+tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Rates register
+tools/test_mrs_register.py          tests for the MRS loader
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
 .github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
