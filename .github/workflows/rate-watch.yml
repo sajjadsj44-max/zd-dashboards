@@ -32,6 +32,7 @@ env:
 jobs:
   watch:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout
         uses: actions/checkout@v4

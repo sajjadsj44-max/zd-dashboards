@@ -154,7 +154,9 @@ Anything new is committed to the `rate-watch/update` branch and offered as a
 **pull request** — the live dashboard changes only when you merge it (check the
 deploy preview first). A new KPK edition that fails the checks opens an issue with
 the link instead and is retried daily. A run marked failed in the Actions tab means
-a source site could not be reached that day. State is kept in `data/rate-watch.json`.
+the KPK site could not be reached or read that day. The Punjab site does not
+answer GitHub's servers (first dry run, 24-Sep-2026: all three pages timed out), so
+a Punjab timeout is only a warning on the run; the KPK site answered normally. State is kept in `data/rate-watch.json`.
 
 For the bot to open pull requests, enable *Settings → Actions → General → Allow
 GitHub Actions to create and approve pull requests* (otherwise it opens an issue

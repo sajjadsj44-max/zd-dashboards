@@ -21,8 +21,10 @@ Punjab - reads the Punjab Finance Department market-rate and input-rate pages
        yet, and is shown on the KPK MRS tab under "Auto-watch".
 
 State lives in data/rate-watch.json. It changes only when something new is
-found, so a quiet day opens no pull request. Exit status 1 means a source could not
-be reached - GitHub then flags the run as failed, which is the alert.
+found, so a quiet day opens no pull request. Exit status 1 means the KPK site
+could not be reached or read - GitHub then flags the run as failed, which is the
+alert. The Punjab site often does not answer GitHub's runners; that is logged as
+a warning on the run and retried the next day.
 """
 import argparse
 import datetime as dt
@@ -55,12 +57,14 @@ def log(*a):
     print(*a, flush=True)
 
 
-def fetch(url, binary=False):
+def fetch(url, binary=False, tries=2):
+    """Pages get 30 s per attempt, PDFs 120 s; a site that does not answer costs
+    about a minute, not the quarter hour of longer timeouts."""
     last = None
-    for i in range(3):
+    for i in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "*/*"})
-            with urllib.request.urlopen(req, timeout=90) as r:
+            with urllib.request.urlopen(req, timeout=120 if binary else 30) as r:
                 b = r.read()
             return b if binary else b.decode("utf-8", "replace")
         except Exception as e:  # network errors, HTTP errors
@@ -221,6 +225,8 @@ class Watch:
                 page = fetch(page_url)
             except RuntimeError as e:
                 log("Punjab:", e)
+                if not reached and "timed out" in str(e):
+                    break  # the whole host is not answering; do not wait on its other pages
                 continue
             reached += 1
             for url, text in links(page, page_url):
@@ -270,11 +276,14 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     w = Watch(a.dry_run)
+    warnings = []
     for name, fn in (("KPK", w.kpk), ("Punjab", w.punjab)):
         try:
             fn()
         except Exception as e:
-            w.errors.append(f"{name}: {e}")
+            # KPK is what the dashboard loads, so only it fails the run; the Punjab
+            # site does not answer GitHub's runners on some days, which is a warning
+            (w.errors if name == "KPK" else warnings).append(f"{name}: {e}")
             log(f"{name}: ERROR {e}")
     if w.changes and not a.dry_run:
         w.state["lastChange"] = dt.date.today().isoformat()
@@ -283,6 +292,8 @@ def main():
         (ROOT / ".rate-watch-msg").write_text("Rate watch: " + "; ".join(w.changes)[:3000] + "\n")
         w.open_issues()
     log("changes:", w.changes or "none")
+    for m in warnings:
+        log(f"::warning::{m}")
     if w.errors:
         sys.exit("unreachable: " + " | ".join(w.errors))
 
