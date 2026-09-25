@@ -1,0 +1,79 @@
+name: Rate watch (MRS auto-update)
+
+# Every day: look for a new KPK Market Rate System edition and new Punjab
+# (Lahore) MRS / input-rate PDFs (tools/rate_watch.py). Whatever is new is put
+# on the rate-watch/update branch and offered as a pull request - nothing
+# reaches the live dashboard until someone merges it. A new edition that cannot
+# be loaded opens an issue instead. On a pull request that touches the watcher
+# it runs as a dry run only.
+
+on:
+  schedule:
+    - cron: "30 1 * * *"   # 06:30 Pakistan time
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - tools/rate_watch.py
+      - tools/kpk_mrs.py
+      - .github/workflows/rate-watch.yml
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: rate-watch
+  cancel-in-progress: false
+
+env:
+  BRANCH: rate-watch/update
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install PyMuPDF
+        run: pip install pymupdf
+
+      - name: Check the rate sources
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/rate_watch.py ${{ github.event_name == 'pull_request' && '--dry-run' || '' }}
+
+      - name: Offer what changed as a pull request
+        if: ${{ always() && github.event_name != 'pull_request' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git add zameen-developments/index.html
+          [ -f data/rate-watch.json ] && git add data/rate-watch.json
+          if git diff --cached --quiet; then echo "Nothing new today."; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -F .rate-watch-msg
+          # the bot's own branch, rebuilt from main on every run that finds something
+          git push --force origin "HEAD:refs/heads/$BRANCH"
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "Open rate-watch pull request updated."; exit 0
+          fi
+          body="$(cat .rate-watch-msg)
+
+          Found by the daily rate watch (tools/rate_watch.py). Check the KPK MRS tab on the
+          deploy preview - edition, notification date and a few rates against the PDF - then merge
+          to publish. Close without merging to reject; the next find reopens it."
+          gh pr create --base main --head "$BRANCH" --title "Rate watch: new government rate schedule found" --body "$body" \
+            || gh issue create --title "Rate watch: update ready on $BRANCH (pull request could not be opened)" \
+                 --body "$body
+
+          The pull request could not be opened automatically. Open it from the $BRANCH branch, or enable
+          Settings -> Actions -> General -> Allow GitHub Actions to create and approve pull requests."

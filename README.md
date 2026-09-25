@@ -104,6 +104,64 @@ tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
 Receipts already in the register are skipped, so a cumulative export can be
 re-run safely. The raw exports are not committed.
 
+## KPK MRS Rates (Rate Analysis)
+
+QS Cost Control → **KPK MRS Rates** lists all 4,584 items of the Khyber
+Pakhtunkhwa Finance Department (MRS Cell) **Market Rate System MRS-2025 (1st
+Bi-Annual)**, notified 07-Oct-2025 (No.MRS/FD/4-2/NOTIFICATION/2025), Peshawar
+base rates. Items are kept separate by their 28 chapters (item types: carriage,
+earthwork, concrete, brick masonry … electrical, photovoltaic, repair &
+maintenance). Each item has its British and metric unit, labour and composite
+rate exactly as printed, the specification reference, the MRS remarks and the
+PDF page number. Units default to British (Cft / Sft / Rft); the metric column
+is available as printed. A district or merged-area location factor (from the
+schedule's own factor tables) can be applied to every rate shown. The filtered
+CSV carries `KPK MRS-2025 (1st Bi-Annual), 07-Oct-2025 — item <code> …` in its
+Source / remarks column and 2025-10-07 as its effective date.
+
+Composite rates include 23.5% (4% KP sales tax, 2% overheads, 7.5% income tax,
+10% contractor's profit). They are KPK government schedule rates, not Lahore
+market rates — a benchmark, not a substitute for a dated Lahore quote or GRN.
+
+The data is embedded in `zameen-developments/index.html` (the
+`<script type="application/json" id="raKpkData">` block). To load a newer
+bi-annual edition:
+
+```sh
+pip install pymupdf                       # once
+tools/kpk_mrs.py "KPK Market Rate System 2026 (1st Bi Annual).pdf" \
+    --edition "MRS-2026 (1st Bi-Annual)" --notified YYYY-MM-DD \
+    --notification "No.MRS/FD/..."
+```
+
+The PDF is not committed.
+
+### Daily rate watch
+
+`.github/workflows/rate-watch.yml` runs `tools/rate_watch.py` every day at 06:30
+Pakistan time (and on demand from the Actions tab):
+
+- **KPK** — reads the KPK Finance Department's Market Rate System page. When an
+  edition newer than the one in the tab is listed, it downloads the PDF, parses it
+  and checks it (3,000+ items, 20+ chapters, 97%+ British/metric agreement). The
+  notification date comes from the notification; if that is a scan, the PDF's issue
+  date is used and the tab shows a "confirm" warning.
+- **Punjab (Lahore)** — reads the Punjab Finance Department market-rate and
+  input-rate pages and records every Lahore PDF. These are listed on the tab; their
+  rates are not parsed yet.
+
+Anything new is committed to the `rate-watch/update` branch and offered as a
+**pull request** — the live dashboard changes only when you merge it (check the
+deploy preview first). A new KPK edition that fails the checks opens an issue with
+the link instead and is retried daily. A run marked failed in the Actions tab means
+the KPK site could not be reached or read that day. The Punjab site does not
+answer GitHub's servers (first dry run, 24-Sep-2026: all three pages timed out), so
+a Punjab timeout is only a warning on the run; the KPK site answered normally. State is kept in `data/rate-watch.json`.
+
+For the bot to open pull requests, enable *Settings → Actions → General → Allow
+GitHub Actions to create and approve pull requests* (otherwise it opens an issue
+pointing at the branch).
+
 ## Punjab MRS Rates (Rate Analysis)
 
 QS Cost Control → **Punjab MRS Rates** is a read-only register of the Punjab
@@ -182,6 +240,150 @@ Rs 2–1,758 per metric ton from a 23-Sep-2026 web-search summary (no seller, no
 date). It is probably low, since fly-ash bricks sell at Rs 13–18 each. Replace it
 with a dated quotation before pricing a live BOQ.
 
+## MEP rate analyses (Rate Analysis)
+
+Rate Analysis → Item Library carries **423 MEP items** (Electrical 129, HVAC 130,
+Plumbing 73, ELV 47, Fire Fighting 44), built on 24-Sep-2026 from the **MAK
+Contractors & Associates final bill for Mall-35 MEP** (`MAK Final Bill Checking.xlsx`,
+Final IPC-09, May-2025: electrical, plumbing, HVAC and all Non-BOQ additional scopes).
+
+MAK worked on an installation-only contract (MEP Works Agreement, 25-Sep-2023: material
+and equipment by the Employer; rates include 7.5% income tax and exclude PRA). So each
+item is built up as:
+
+- **A. Material:** the latest GRN from the GRN Price Register (same `GRN-…` codes its
+  **+ Rate DB** button uses), or an existing Rate Database line (`SAN-WC`, `SAN-WB`).
+  Pipe fittings and tray accessories are a share of the pipe / tray value, taken from the
+  Quadrangle receipts: PPRC 1.054, uPVC 0.980, MS 0.483, tray (without covers) 0.224.
+  Insulation sheet and GI sheet are converted to per Sft. Each conversion is written in
+  the line's remarks.
+- **Wire and small cable (refreshed 24-Sep-2026):** single-core wire and earth cable
+  1.5–70 mm², 2C 1.5 mm² speaker cable and RG-6 / RG-11 use the **Pakistan Cables suggested
+  retail price list, 03-Jun-2026** (90 metre coil, registered price including 18% GST,
+  ÷ 295.276 ft), cross-checked against the **Fast Cables retail price list, 10-Jan-2026**
+  (within about 5%). Both PDFs are in Google Drive. A **30% trade discount** (supplied by
+  Sajjad, 24-Sep-2026; `TRADE_DISC` in `tools/mep_rates.py`) is taken off the list price,
+  giving for example 1C 25 mm² 378.52/Rft net (list 540.75; last GRN 227.10 on Quadrangle
+  RCP-2297, 25-Jan-2025). Each line's remarks give the list price, the discount, the Fast
+  cross-check and the last GRN, and the line is marked `I` (market indication). Neither
+  list covers 600/1000 V power cable, GI sheet, insulation or pipe, so those stay on GRN.
+- **B. Wastage:** cables 3%, pipes / conduit / duct / insulation 5%, fixtures 0%.
+- **C. Labour:** `MAK-<item>` = the MAK rate for that item, read from the bill rows.
+  BOQ rates are dated 25-Sep-2023 (the contract). Non-BOQ rates are dated 31-May-2025,
+  because the certificate gives only the month.
+- **G / H:** house overhead 8% and profit 10%. MAK's rate already includes MAK's own
+  margin. Set both to 0 to get Zameen's direct cost.
+
+Per-point wiring quantities (for example 45 ft of run from the DB to a switch board, or 60
+ft of Cat-6 per data point) are assumptions stated in the line notes, because the bill's
+measurement sheets count points but do not give lengths. Materials with no GRN (97
+lines, for example PICVs, patch panels, speakers and 8"–12" MS pipe) are kept at 0 and
+marked `ASSUMPTION — no dated source`. The item then shows an unpriced gap. **133 of the
+138 priced materials come from GRNs more than 12 months old** (Quadrangle 2022–2025),
+and their remarks say "reconfirm before use". Employer-supplied equipment (panels,
+chillers, AHUs, FCUs, pumps, fans) is installation only. Where one exists, the note gives
+the Quadrangle GRN supply price for reference.
+
+Every item's spec names the bill item and row it came from. Its note gives the Mall-35
+contract and final-bill quantities. Where several bill rows share one rate, they are
+grouped into one item (all DBs at 14,550; all FCU sizes at 2,659.38). Non-BOQ rows that
+repeat a BOQ rate rounded to 2 dp were left out of those groups.
+
+The data is in the `<script type="application/json" id="raMepData">` block. Saved
+libraries get the new lines and items on their next load (missing codes only; nothing
+already in the library is changed, except that a line or item still at a previously
+published version is moved to the new one — the block keeps those versions in `prevRates` /
+`prevItems`, and anything edited by hand is left alone). To rebuild from a newer bill or GRN register:
+
+```sh
+pip install openpyxl
+tools/mep_rates.py "MAK Final Bill Checking.xlsx"
+MAK_BILL="MAK Final Bill Checking.xlsx" python3 -m unittest tools/test_mep_rates.py
+```
+
+The build stops if any rows grouped into one item carry different rates. The bill
+workbook is not committed.
+
+## Calculator tab
+
+Sidebar → **Calculator** (after Admin) is a QS / civil / structural / MEP calculator
+module, added 25-Sep-2026. Every calculation shows **Input → Formula → Working
+(substituted values) → Result → Unit**, multi-unit results (kg / ton / lb, kg/m / kg/ft,
+SFT / m², CFT / m³, litres / gallons) and a source panel naming the standard, whether the
+value is a **published table value** or **calculated**, and the density used
+(**Standard density** or **User-defined density** — never changed silently).
+
+- **Steel:** rebar (d²/162, exact, BS 4449 table, ASTM A615 bar No. / sutar; weight ↔
+  length), plate / sheet, flat, round, square / rectangular / hex bar, MS / GI pipe, SHS /
+  RHS / CHS (sharp, EN 10210 or EN 10219 corner radii), any standard section, welded plate
+  girder, angle, channel, I / H, tee, C / Z purlin, and a general any-shape calculator.
+- **Section database:** 3,652 sections and pipes in 70 series — IS 808:1989 (MB/ISMB,
+  LB, JB, WB, HB, SC, NPB, WPB, PBP, MC/ISMC, MPC, LC, JC, ISA equal / unequal), IS 4923
+  SHS / RHS, IS 1161 CHS, BS 4-1 UB / UC, EN IPE / HEA / HEB / HEM, UPN, UPE, IPN, HD, HP,
+  EN 10056 angles, EN 10210 SHS / RHS / CHS, AISC v16 W / S / M / HP / C / MC / L / WT /
+  HSS / Pipe, ASME B36.10M / B36.19M schedules, EN 10255 (BS 1387) medium / heavy,
+  BS 1387 light, ASTM D1785 PVC. Search → select → shape, dimensions, kg/m, kg/ft,
+  properties, source.
+- **Civil & finishes:** concrete (PCC / RCC with deductions, nominal mix, steel kg/m³),
+  material mix, excavation (side slopes, prismoidal), brickwork, blockwork, stone
+  masonry, plaster, screed, formwork, tile / marble, paint / putty, waterproofing,
+  skirting, boards, grout / adhesive, sealant. Dimensions are shown as
+  `Nos × L × W × H` strings and openings as separate negative rows.
+- **MEP:** pipe volume / weight (any material, schedules), tank volume (incl. part-filled
+  horizontal cylinder), flow ↔ velocity, length takeoff, insulation, electrical load
+  (1φ / 3φ), Ohm's law, cable conductor weight, voltage-drop estimate (IEC 60228 DC
+  resistance), AWG ↔ mm², cable tray, HVAC duct area / weight / air volume.
+- **Item-wise calculators (BOQ items):** 81 ready-made items in 12 trades (earthwork,
+  grey-structure concrete, masonry, reinforcement, plaster & mortar, flooring, painting,
+  waterproofing, ceiling, plumbing, electrical, HVAC) — e.g. PCC 1:4:8 lean, DPC 1½",
+  RCC slab / beam / column / footing / lintel, 9" brickwork 1:6, 6" blockwork, brick
+  soling, internal / external / ceiling plaster, 600×600 tiles, emulsion system, rebar
+  by sutar, binding wire. Each is a preset of a calculator above; every value stays editable.
+- **More grey-structure / finishes tools:** material weight CFT ↔ kg (RCC, PCC, brick
+  masonry, mortar, cement, sand, steel …), filling / backfilling (compaction allowance,
+  truck trips), bar bending schedule (weight per diameter), steel from concrete volume
+  (kg/CFT, kg/m³, %), binding wire (ties in slab mesh or beams / columns × wire length per
+  tie × SWG weight, or kg per ton), brick soling / on-edge, staircase concrete,
+  false-ceiling grid, pipe slope / fall, **coat-wise painting system** (primer, putty and
+  paint coats each with their own TDS coverage), **tile bond (tile adhesive)** — kg and bags
+  from the bag / TDS consumption, bed thickness or notched-trowel size, with back-buttering —
+  and a coverage-material tool (SBR bond coat,
+  sealer, epoxy, anti-termite, curing compound).
+- **Libraries:** two-way unit converter (NIST SP 811 exact factors, incl. RFT / SFT / CFT,
+  Marla / Kanal both conventions, brass, maund), conversion library, formula library,
+  constants / unit weights (materials with status and source; BS 4449, ASTM A615,
+  IEC 60228, gauge and AWG tables), density settings, and **custom calculations** (your
+  own named formula, inputs, units and optional density).
+- Search answers directly: `10 cft to m3`, `5 marla in sft` (both conventions),
+  `100 cft rcc to kg`, `500 kg cement in cft`. It knows site terms (sariya, eent, chunai,
+  bajri, ret, khudai, bharai, rang, taar, masala …) and tolerates typos.
+- Search box (in the tab and in the dashboard-wide search) understands `20mm rebar`,
+  `#5`, `ISMB 300`, `MS pipe 4 inch`, `10mm plate`, `25x25 angle`, `RHS 100x50x5`,
+  `W12x26`, `brickwork`, `paint`, `cable`. Favourites (★), recent calculations (reopen /
+  copy / delete / clear), copy, print / PDF, CSV and Excel export. Favourites, history,
+  last inputs, density overrides and custom calculators live in the viewer's browser only.
+
+**Data rules.** Nothing standardised is typed into the UI code. Section and pipe tables
+come from `tools/calc_data.py`, which reads published machine-readable sources
+(eurocodepy, AISC Shapes Database v16 via steelpy, Osdag's IS 808 database, fluids'
+ASME tables, structuralcodes EN dimensions) and writes the
+`<script type="application/json" id="calcData">` block. Where only dimensions are
+published (UPN, UPE, IPN, HD, HP, EN angles) the mass is computed from the exact profile
+(fillets, toe radii, taper) at 7850 kg/m³ and labelled *calculated* — checked against
+catalogue values (UPN 100 13.47 vs 13.5 cm², IPN 300 69.00 vs 69.0 cm²). Values that
+could not be verified are not invented: plastic pipe densities, paint coverage, grout
+density, membrane consumption, putty / primer / paint coverage per coat, binding-wire
+length per tie, soil / aggregate density and overall cable weight must be entered from the product
+data sheet, and the calculator refuses to calculate until they are. QS conventions (dry-
+volume factors 1.54 / 1.27, joint thickness, wastage) are editable and badged
+*convention*. To rebuild the data:
+
+```sh
+pip install eurocodepy steelpy structuralcodes fluids shapely numpy
+git clone --depth 1 https://github.com/osdag-admin/Osdag.git /tmp/osdag
+tools/calc_data.py --osdag /tmp/osdag zameen-developments/index.html
+```
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -251,6 +453,12 @@ drawing-tracker/index.html          Drawing Tracker dashboard
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
 tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Rates register
 tools/test_mrs_register.py          tests for the MRS loader
+tools/mep_rates.py                  build the MEP rate analyses from the MAK final bill + GRN register
+tools/test_mep_rates.py             tests for the MEP rate analyses
+tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
+tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
+tools/calc_data.py                  build the Calculator tab's section / pipe / material data block
+.github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
 ```
