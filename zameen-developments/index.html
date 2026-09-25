@@ -601,6 +601,7 @@ body[data-mod="cm"]{--head:#17375e}
     <button data-rv="grn">&#128230; GRN Price Register</button>
     <button data-rv="mrs">&#127963; Punjab MRS Rates</button>
     <button data-rv="kpk">&#127963; KPK MRS Rates</button>
+    <button data-rv="lmx">&#129521; Concrete Mix Design &ndash; Lab Rate Analysis</button>
     <button data-rv="mat">&#9878; Rate Database</button>
     <button data-rv="boq">&#9783; Project BOQ</button>
     <button data-rv="data">&#8681; Data &amp; Settings</button>
@@ -777,6 +778,43 @@ body[data-mod="cm"]{--head:#17375e}
       <div class="bd flush"><div class="rascroll"><table class="ratbl" id="raKTbl"></table></div></div>
       <div class="rakey" id="raKMore"></div>
     </div>
+  </section>
+
+  <section class="raview" id="rav-lmx">
+    <div class="rabar">
+      <div class="fg"><label>Search</label><input type="search" id="lmxQ" placeholder="psi, lab, mix ref, date, material&hellip;"></div>
+      <div class="fg"><label>Concrete PSI</label><select id="lmxPsi"><option value="">All grades</option></select></div>
+      <div class="fg"><label>Laboratory</label><select id="lmxLab" style="max-width:260px"><option value="">All laboratories</option></select></div>
+      <div class="fg"><label>Date</label><select id="lmxDate"><option value="">All dates</option></select></div>
+      <div class="fg"><label>Records</label><select id="lmxStat">
+        <option value="active">Active</option><option value="archived">Archived</option>
+        <option value="verify">Needs verification</option><option value="all">All</option></select></div>
+      <span style="flex:1"></span>
+      <button class="rabtn" id="lmxClear">&#10005; Clear</button>
+      <button class="rabtn pri" id="lmxNew">&#43; New mix design</button>
+    </div>
+    <div class="rainfo" id="lmxInfo">&nbsp;</div>
+    <div class="rakpis" id="lmxKpis"></div>
+    <div class="racard">
+      <div class="hd"><div><h3>Laboratory mix design records</h3>
+        <div class="sub" id="lmxN">&nbsp;</div></div><div class="sp"></div>
+        <button class="rabtn sm" id="lmxCsvAll">&#8681; Register CSV</button>
+        <button class="rabtn sm" id="lmxPhotos">&#128247; Photo register</button></div>
+      <div class="bd" id="lmxCards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:9px;max-height:430px;overflow:auto"></div>
+    </div>
+    <div class="rabar">
+      <div class="fg"><label>1. Concrete PSI</label><select id="lmxPick1"></select></div>
+      <div class="fg"><label>2. Laboratory &amp; mix design</label><select id="lmxPick2" style="min-width:380px"></select></div>
+      <span style="flex:1"></span>
+      <button class="rabtn" data-lmx="edit">&#9998; Edit details</button>
+      <button class="rabtn" data-lmx="dup">&#10697; Duplicate</button>
+      <button class="rabtn" data-lmx="arch">&#128451; Archive</button>
+      <button class="rabtn pri" data-lmx="print">&#128424; Print / PDF</button>
+      <button class="rabtn" data-lmx="xlsx">&#8681; Excel</button>
+      <button class="rabtn" data-lmx="csv">&#8681; CSV</button>
+      <button class="rabtn dng" data-lmx="del">&#10005; Delete</button>
+    </div>
+    <div id="lmxBody"></div>
   </section>
 
   <section class="raview" id="rav-mat">
@@ -2563,6 +2601,514 @@ body[data-mod="cm"]{--head:#17375e}
     var b=document.querySelector('#raSub button[data-rv="mrs"]');
     if(b) b.addEventListener("click", function(){ setTimeout(render,0); });
   }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
+</script>
+<script type="application/json" id="raLabMixData">{"rev":"2026-09-25-lab1","received":"2026-09-25","source":"15 photos of lab-approved concrete mix designs sent by Sajjad, transcribed 25-Sep-2026","dens":{"sand":46.65,"agg":41.0,"src":"Al Rafiq Ready Mix mix-design summary CFT columns (received 23-Sep-2026) — the same kg → Cft conversion the Item Library design mixes use; an assumption for other labs' materials"},"photos":[[1,"Excel ACI-211.1 sheet — cement 200",["LMX-XL-01"]],[2,"Excel ACI-211.1 sheet — cement 150",["LMX-XL-02"]],[3,"Excel ACI-211.1 sheet — cement 320",["LMX-XL-03"]],[4,"Excel ACI-211.1 sheet — cement 530",["LMX-XL-04"]],[5,"Excel ACI-211.1 sheet — cement 400",["LMX-XL-05"]],[6,"Excel ACI-211.1 sheet — cement 475",["LMX-XL-06"]],[7,"J7 Group Emporium Mall B-17 batch weight summary",["LMX-J7-3000","LMX-J7-4000","LMX-J7-4500","LMX-J7-5000","LMX-J7-5500"]],[8,"Duplicate of photo 7 (same sheet)",[]],[9,"Concrete Mix Design (5000 PSI) ACI-211.1, 05-04-26",["LMX-ACI5K-01"]],[10,"Ready-mix sheet — 1000 psi",["LMX-MUL-1000"]],[11,"Ready-mix sheet — 6000 psi, DHA Multan",["LMX-MUL-6000"]],[12,"Ready-mix sheet — 4500 psi",["LMX-MUL-4500"]],[13,"Ready-mix sheet — 4000 psi",["LMX-MUL-4000"]],[14,"Ready-mix sheet — 1:3:6 ratio",["LMX-MUL-136"]],[15,"Concrete Mix Design ACI-211 batch weights (1500/4000/4500/6000)",["LMX-ACI-1500","LMX-ACI-4000","LMX-ACI-4500","LMX-ACI-6000"]]],"recs":[{"id":"LMX-XL-01","photos":[1],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 200 kg/m³ (photo 1)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2262,"mats":[{"t":"cem","n":"Cement (1)","kg":200,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":181,"code":"WATER"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":209,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":839,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":833,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1036.2 kg","Uncorrected weights per 1 m³ (kg): cement 200 · water 209.3 · admixture 0.0 · combined C.A. 1036.2 (20 mm 207.2 + 12 mm 829.0 + pan/5 mm 0.0) · sand-1 816.3 · total 2261.8","Corrected weights per 1 m³ (kg) used here: cement 200 · water 181 · admixture 0 · C.A. 1048 (20 mm 209 + 12 mm 839 + pan/5 mm 0) · sand-1 833 · total 2262","Trial batch 0.014 m³ weights (kg): 2.80 / 2.53 / 0.00 / 14.67 (2.93 + 11.74 + 0.00) / 11.66 — total 31.665","Absolute volumes (m³): paste 0.273492 · C.A. 0.395889 · F.A. 0.330619","Fresh concrete: temperature 20 °C; slump initial 'Collapse' (as shown), at 15 min 190 mm (7.480\"), at 30 min 170 mm (6.693\"), at 45 min 150 mm (5.906\")"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush","No admixture on this sheet (0.0 kg)"]},{"id":"LMX-XL-02","photos":[2],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 150 kg/m³ (photo 2)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2231,"mats":[{"t":"cem","n":"Cement (1)","kg":150,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":195,"code":"WATER"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":209,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":839,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":837,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1036.2 kg","Uncorrected weights per 1 m³ (kg): cement 150 · water 223.3 · admixture 0.0 · combined C.A. 1036.2 (20 mm 207.2 + 12 mm 829.0 + pan/5 mm 0.0) · sand-1 820.9 · total 2230.4","Corrected weights per 1 m³ (kg) used here: cement 150 · water 195 · admixture 0 · C.A. 1048 (20 mm 209 + 12 mm 839 + pan/5 mm 0) · sand-1 837 · total 2231","Trial batch 0.014 m³ weights (kg): 2.10 / 2.73 / 0.00 / 14.67 (2.93 + 11.74 + 0.00) / 11.72 — total 31.227","Absolute volumes (m³): cement 0.047619 · water 0.204000 · admixture 0 · air 0.020000 · paste 0.271619 · C.A. 0.395889 (C.A.-1 0.079178, C.A.-2 0.316711) · F.A. 0.332492"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush","No admixture on this sheet (0.0 kg)"]},{"id":"LMX-XL-03","photos":[3],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 320 kg/m³ (photo 3)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2319,"mats":[{"t":"cem","n":"Cement (1)","kg":320,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":158,"code":"WATER"},{"t":"adm","n":"Admixture (product not named on sheet)","kg":3.2,"code":"ADMIX-SP","flag":"Admixture product not named — linked to ADMIX-SP"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":209,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":839,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":789,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1036.2 kg","Uncorrected weights per 1 m³ (kg): cement 320 · water 185.1 · admixture 3.2 · combined C.A. 1036.2 (20 mm 207.2 + 12 mm 829.0 + pan/5 mm 0.0) · sand-1 773.9 · total 2318.4","Corrected weights per 1 m³ (kg) used here: cement 320 · water 158 · admixture 3.2 · C.A. 1048 (20 mm 209 + 12 mm 839 + pan/5 mm 0) · sand-1 789 · total 2319","Trial batch 0.014 m³ weights (kg): 4.48 / 2.21 / 0.04 / 14.67 (2.93 + 11.74 + 0.00) / 11.05 — total 32.459","Absolute volumes (m³): water 0.166400 · admixture 0.002689 · air 0.020000 · paste 0.290676 · C.A.-2 0.316711 · F.A. 0.313435"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush"]},{"id":"LMX-XL-04","photos":[4],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 530 kg/m³ (photo 4)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2331,"mats":[{"t":"cem","n":"Cement (1)","kg":530,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":178,"code":"WATER"},{"t":"adm","n":"Admixture (product not named on sheet)","kg":5.3,"code":"ADMIX-SP","flag":"Admixture product not named — linked to ADMIX-SP"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":209,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":839,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":569,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1036.2 kg","Uncorrected weights per 1 m³ (kg): cement 530 · water 201.5 · admixture 5.3 · combined C.A. 1036.2 (20 mm 207.2 + 12 mm 829.0 + pan/5 mm 0.0) · sand-1 557.8 · total 2330.8","Corrected weights per 1 m³ (kg) used here: cement 530 · water 178 · admixture 5.3 · C.A. 1048 (20 mm 209 + 12 mm 839 + pan/5 mm 0) · sand-1 569 · total 2331","Trial batch 0.014 m³ weights (kg): 7.42 / 2.50 / 0.07 / 14.67 (2.93 + 11.74 + 0.00) / 7.96 — total 32.631","Absolute volumes (m³): cement 0.168254 · water 0.185500 · admixture 0.004454 · air 0.020000 · paste 0.378208 · C.A. 0.39588 (C.A.-1 0.07917, C.A.-2 0.31671) · F.A. 0.225903"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush"]},{"id":"LMX-XL-05","photos":[5],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 400 kg/m³ (photo 5)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2331,"mats":[{"t":"cem","n":"Cement (1)","kg":400,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":175,"code":"WATER"},{"t":"adm","n":"Admixture (product not named on sheet)","kg":4.0,"code":"ADMIX-SP","flag":"Admixture product not named — linked to ADMIX-SP"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":208,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":834,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":710,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1029.6 kg","Uncorrected weights per 1 m³ (kg): cement 400 · water 194.9 · admixture 4.0 · combined C.A. 1029.6 (20 mm 205.9 + 12 mm 823.7 + pan/5 mm 0.0) · sand-1 701.9 · total 2330.4","Corrected weights per 1 m³ (kg) used here: cement 400 · water 175 · admixture 4.0 · C.A. 1042 (20 mm 208 + 12 mm 834 + pan/5 mm 0) · sand-1 710 · total 2331","Trial batch 0.014 m³ weights (kg): 5.60 / 2.44 / 0.06 / 14.58 (2.91 + 11.67 + 0.00) / 9.95 — total 32.627","Absolute volumes (m³): water 0.172000 · admixture 0.003361 · air 0.020000 · paste 0.322345 · C.A.-2 0.314694 · F.A. 0.284287","Fresh concrete: temperature 20 °C (slump row cut off in photo)"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush"]},{"id":"LMX-XL-06","photos":[6],"lab":"Not shown — Excel ACI-211.1 mix-design workbook (sheet tabs 'TM … psi WCH')","project":"","psi":null,"grade":"PSI not shown","ref":"ACI-211.1 workbook sheet — cement 475 kg/m³ (photo 6)","date":"","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2358,"mats":[{"t":"cem","n":"Cement (1)","kg":475,"code":"CEM"},{"t":"water","n":"Water (corrected)","kg":185,"code":"WATER"},{"t":"adm","n":"Admixture (product not named on sheet)","kg":4.8,"code":"ADMIX-SP","flag":"Admixture product not named — linked to ADMIX-SP"},{"t":"agg","n":"1 — C.A. 20 mm (3/4\")","kg":209,"code":"@agg"},{"t":"agg","n":"2 — C.A. 12 mm (1/2\")","kg":839,"code":"@agg"},{"t":"sand","n":"F.A. (Sand-1)","kg":645,"code":"@sand"}],"info":["Method: ACI 211.1 absolute volume (ACI Table 211-A1.5.3.6, volume base of coarse aggregate 0.66), dry-rodded unit wt × volume base = absolute wt of total aggregates 1036.2 kg","Uncorrected weights per 1 m³ (kg): cement 475 · water 204.9 · admixture 4.8 · combined C.A. 1036.2 (20 mm 207.2 + 12 mm 829.0 + pan/5 mm 0.0) · sand-1 637.4 · total 2358.2","Corrected weights per 1 m³ (kg) used here: cement 475 · water 185 · admixture 4.8 · C.A. 1048 (20 mm 209 + 12 mm 839 + pan/5 mm 0) · sand-1 645 · total 2358","Trial batch 0.014 m³ weights (kg): 6.65 / 2.59 / 0.07 / 14.67 (2.93 + 11.74 + 0.00) / 9.03 — total 33.018","Absolute volumes (m³): water 0.185250 · admixture 0.003992 · air 0.020000 · paste 0.360035 · C.A.-2 0.315987 · F.A. 0.244981","Fresh concrete: temperature 20 °C; slump initial 'Collapse' (as shown), at 15 min 190 mm (7.480\"), at 30 min 170 mm (6.693\"), at 45 min 150 mm (5.906\")"],"verify":["Laboratory name is not shown on the photo","Concrete strength (psi) is not shown on this sheet. Photo 4 shows workbook tabs 'TM 5000psi WCH (7)', 'TM 4000psi WCH (8)', 'TM 3000psi WCH (9)'; which tab this sheet is cannot be confirmed","Date of mix / trial not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush"]},{"id":"LMX-J7-3000","photos":[7,8],"lab":"J7 Group QA/QC — Concrete Batching Plant, Multi Garden (B-17)","project":"J7 Group Emporium Mall B-17","psi":3000,"grade":"3000 psi","ref":"Summary of Concrete Batch Weights 1 m³ — TM # 16 (17-01-2024)","date":"2024-01-17","method":"Batching-plant trial mix (TM)","basis":"Batch weights per 1 m³","yld":1,"total":2334.25,"mats":[{"t":"cem","n":"Cement","kg":325,"code":"CEM"},{"t":"water","n":"Water","kg":192,"code":"WATER"},{"t":"adm","n":"Admixture Imp.540 M (1.0% by cement, Sg 1.18)","kg":3.25,"sg":1.18,"code":"ADMIX-SP","flag":"Imp.540 M has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"agg","n":"Crush 1/2\"","kg":105,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":738,"code":"@agg"},{"t":"agg","n":"Crush 1/4\"","kg":211,"code":"@agg"},{"t":"sand","n":"Sand","kg":760,"code":"@sand"}],"info":["Sheet: J7 Group Emporium Mall B-17 — Summary of Concrete Batch Weights 1 (M)³, Concrete Batching Plant Multi Garden (B-17). Remarks column: TM # 16 (17-01-2024)","Prepared by QA/QC Manager 08-03-24 · Reviewed by Project Manager · Approved by Director Engineering Division (signed)","Handwritten note: 1- Applicable to all J7 Group projects. 2- Under strict observation, QA/QC team to observe performance and report monthly with recommendations","Photos 7 and 8 are the same sheet (duplicate photo) — entered once"],"verify":["Crush and sand sources not shown — linked to the Rate Analysis default sand and crush","Crush 1/4\" has no separate Rate Database line — priced at the default crush line; confirm"]},{"id":"LMX-J7-4000","photos":[7,8],"lab":"J7 Group QA/QC — Concrete Batching Plant, Multi Garden (B-17)","project":"J7 Group Emporium Mall B-17","psi":4000,"grade":"4000 psi","ref":"Summary of Concrete Batch Weights 1 m³ — TM # 11 (13-01-2024)","date":"2024-01-13","method":"Batching-plant trial mix (TM)","basis":"Batch weights per 1 m³","yld":1,"total":2347.61,"mats":[{"t":"cem","n":"Cement","kg":425,"code":"CEM"},{"t":"water","n":"Water","kg":192,"code":"WATER"},{"t":"adm","n":"Admixture Imp.540 M (1.32% by cement, Sg 1.18)","kg":5.61,"sg":1.18,"code":"ADMIX-SP","flag":"Imp.540 M has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"agg","n":"Crush 1/2\"","kg":105,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":738,"code":"@agg"},{"t":"agg","n":"Crush 1/4\"","kg":211,"code":"@agg"},{"t":"sand","n":"Sand","kg":671,"code":"@sand"}],"info":["Sheet: J7 Group Emporium Mall B-17 — Summary of Concrete Batch Weights 1 (M)³, Concrete Batching Plant Multi Garden (B-17). Remarks column: TM # 11 (13-01-2024)","Prepared by QA/QC Manager 08-03-24 · Reviewed by Project Manager · Approved by Director Engineering Division (signed)","Handwritten note: 1- Applicable to all J7 Group projects. 2- Under strict observation, QA/QC team to observe performance and report monthly with recommendations","Photos 7 and 8 are the same sheet (duplicate photo) — entered once"],"verify":["Crush and sand sources not shown — linked to the Rate Analysis default sand and crush","Crush 1/4\" has no separate Rate Database line — priced at the default crush line; confirm"]},{"id":"LMX-J7-4500","photos":[7,8],"lab":"J7 Group QA/QC — Concrete Batching Plant, Multi Garden (B-17)","project":"J7 Group Emporium Mall B-17","psi":4500,"grade":"4500 psi","ref":"Summary of Concrete Batch Weights 1 m³ — TM # 15 (17-01-2024)","date":"2024-01-17","method":"Batching-plant trial mix (TM)","basis":"Batch weights per 1 m³","yld":1,"total":2360.51,"mats":[{"t":"cem","n":"Cement","kg":465,"code":"CEM"},{"t":"water","n":"Water","kg":186,"code":"WATER"},{"t":"adm","n":"Admixture Imp.540 M (1.4% by cement, Sg 1.18)","kg":6.51,"sg":1.18,"code":"ADMIX-SP","flag":"Imp.540 M has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"agg","n":"Crush 1/2\"","kg":105,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":738,"code":"@agg"},{"t":"agg","n":"Crush 1/4\"","kg":211,"code":"@agg"},{"t":"sand","n":"Sand","kg":649,"code":"@sand"}],"info":["Sheet: J7 Group Emporium Mall B-17 — Summary of Concrete Batch Weights 1 (M)³, Concrete Batching Plant Multi Garden (B-17). Remarks column: TM # 15 (17-01-2024)","Prepared by QA/QC Manager 08-03-24 · Reviewed by Project Manager · Approved by Director Engineering Division (signed)","Handwritten note: 1- Applicable to all J7 Group projects. 2- Under strict observation, QA/QC team to observe performance and report monthly with recommendations","Photos 7 and 8 are the same sheet (duplicate photo) — entered once"],"verify":["Crush and sand sources not shown — linked to the Rate Analysis default sand and crush","Crush 1/4\" has no separate Rate Database line — priced at the default crush line; confirm"]},{"id":"LMX-J7-5000","photos":[7,8],"lab":"J7 Group QA/QC — Concrete Batching Plant, Multi Garden (B-17)","project":"J7 Group Emporium Mall B-17","psi":5000,"grade":"5000 psi","ref":"Summary of Concrete Batch Weights 1 m³ — TM # 12 (15-01-2024)","date":"2024-01-15","method":"Batching-plant trial mix (TM)","basis":"Batch weights per 1 m³","yld":1,"total":2360.29,"mats":[{"t":"cem","n":"Cement","kg":515,"code":"CEM"},{"t":"water","n":"Water","kg":191,"code":"WATER"},{"t":"adm","n":"Admixture Imp.540 M (1.42% by cement, Sg 1.18)","kg":7.29,"sg":1.18,"code":"ADMIX-SP","flag":"Imp.540 M has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"agg","n":"Crush 1/2\"","kg":105,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":738,"code":"@agg"},{"t":"agg","n":"Crush 1/4\"","kg":211,"code":"@agg"},{"t":"sand","n":"Sand","kg":593,"code":"@sand"}],"info":["Sheet: J7 Group Emporium Mall B-17 — Summary of Concrete Batch Weights 1 (M)³, Concrete Batching Plant Multi Garden (B-17). Remarks column: TM # 12 (15-01-2024)","Prepared by QA/QC Manager 08-03-24 · Reviewed by Project Manager · Approved by Director Engineering Division (signed)","Handwritten note: 1- Applicable to all J7 Group projects. 2- Under strict observation, QA/QC team to observe performance and report monthly with recommendations","Photos 7 and 8 are the same sheet (duplicate photo) — entered once"],"verify":["Crush and sand sources not shown — linked to the Rate Analysis default sand and crush","Crush 1/4\" has no separate Rate Database line — priced at the default crush line; confirm","Admixture printed 7.29 kg; 1.42% × 515 kg cement = 7.31 kg — printed value used"]},{"id":"LMX-J7-5500","photos":[7,8],"lab":"J7 Group QA/QC — Concrete Batching Plant, Multi Garden (B-17)","project":"J7 Group Emporium Mall B-17","psi":5500,"grade":"5500 psi","ref":"Summary of Concrete Batch Weights 1 m³ — TM # 13 (15-01-2024)","date":"2024-01-15","method":"Batching-plant trial mix (TM)","basis":"Batch weights per 1 m³","yld":1,"total":2361.5,"mats":[{"t":"cem","n":"Cement","kg":530,"code":"CEM"},{"t":"water","n":"Water","kg":191,"code":"WATER"},{"t":"adm","n":"Admixture Imp.540 M (1.42% by cement, Sg 1.18)","kg":7.5,"sg":1.18,"code":"ADMIX-SP","flag":"Imp.540 M has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"agg","n":"Crush 1/2\"","kg":105,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":738,"code":"@agg"},{"t":"agg","n":"Crush 1/4\"","kg":211,"code":"@agg"},{"t":"sand","n":"Sand","kg":579,"code":"@sand"}],"info":["Sheet: J7 Group Emporium Mall B-17 — Summary of Concrete Batch Weights 1 (M)³, Concrete Batching Plant Multi Garden (B-17). Remarks column: TM # 13 (15-01-2024)","Prepared by QA/QC Manager 08-03-24 · Reviewed by Project Manager · Approved by Director Engineering Division (signed)","Handwritten note: 1- Applicable to all J7 Group projects. 2- Under strict observation, QA/QC team to observe performance and report monthly with recommendations","Photos 7 and 8 are the same sheet (duplicate photo) — entered once"],"verify":["Crush and sand sources not shown — linked to the Rate Analysis default sand and crush","Crush 1/4\" has no separate Rate Database line — priced at the default crush line; confirm","Admixture printed 7.5 kg; 1.42% × 530 kg cement = 7.53 kg — printed value used"]},{"id":"LMX-ACI5K-01","photos":[9],"lab":"Not shown — 'Concrete Mix Design (5000 PSI) Method ACI-211.1' sheet","project":"","psi":5000,"grade":"5000 psi","ref":"Concrete Mix Design (5000 PSI), Method ACI-211.1 — date of mixing 05-04-26","date":"2026-04-05","method":"ACI 211.1 (absolute volume)","basis":"Corrected weights per 1 m³","yld":1,"total":2439,"mats":[{"t":"cem","n":"Cement OPC","kg":550,"code":"CEM"},{"t":"water","n":"Water","kg":187,"code":"WATER"},{"t":"agg","n":"C/Agg 19 mm to 12 mm (3/4\"–1/2\"), 40% — Sargodha","kg":418.6,"code":"CRSH-SG"},{"t":"agg","n":"C/Agg 12 mm to 05 mm (1/2\"–3/16\"), 60% — Sargodha","kg":627.9,"code":"CRSH-SG"},{"t":"sand","n":"Fine aggregate (sand) — Lawrencepur","kg":647.7,"code":"SAND-LP"},{"t":"adm","n":"Admixture Sika-520BA / Vertex G-880 (1.2 L per 100 kg cement, Sg 1.165)","kg":7.69,"sg":1.165,"code":"ADMIX-SP","flag":"Sika-520BA / Vertex G-880 has no Rate Database line — priced at ADMIX-SP (FosPak SP 568); confirm"}],"info":["Sources: coarse agg Sargodha ('Sargdha'), fine agg Lawrencepur ('Lawrance Pur'), cement OPC","Design data: W/C 0.34 · design cement 550 kg/m³ · max water 187 kg · admixture 7.69 kg · air 2.00% · FM of sand 2.40 · Sg cement 3.150, admixture 1.165, F.A. 2.650, C.A. 2.857 · unit wt C.A. 1.610 · C/Agg factor (Table A1.5.3.6) 0.650","Volumes (m³): cement 0.174603 · water 0.187000 · admixture 0.007689 · air 0.020000 · paste 0.389292 · C.A. 0.366293 · F.A. 0.244415 (sum 1.000000)","Wt of C.A. 1046.50 kg; absorption C.A. 0.96% (10.05 kg), F.A. 1.30% (8.42 kg), total 18.47","Density of mix 2439 kg/m³ (uncorrected = corrected)"],"verify":["Laboratory name is not shown on the photo","'Required Strength (20% Extra)' value is blank on the sheet","Corrected weights equal the uncorrected weights — no moisture correction applied on the sheet"]},{"id":"LMX-MUL-1000","photos":[10],"lab":"Not shown — ready-mix plant mix-design sheets, DHA Multan (BS 882:1992 grading)","project":"DHA Multan","psi":1000,"grade":"1000 psi","ref":"Mix class 1000 psi — total binder 200 kg/m³ (photo 10)","date":"","method":"Ready-mix plant design (BS 882:1992 grading)","basis":"Batch weights per 1 m³","yld":1,"total":2330,"mats":[{"t":"cem","n":"OPC","kg":200,"code":"CEM"},{"t":"agg","n":"20 mm (3/4\") crushed aggregate","kg":650,"code":"@agg"},{"t":"agg","n":"10 mm (3/8\") crushed aggregate","kg":420,"code":"@agg"},{"t":"sand","n":"Lawrencepur sand","kg":850,"code":"SAND-LP"},{"t":"water","n":"Free water","kg":210,"code":"WATER"}],"info":["Total binder 200 kg/m³ (OPC 200, GGBS 0, micro silica 0) · air content 2% · fresh concrete temperature = 32 °C","Blending sand — · Admixture (Sika 512 Pk) — · Admixture-2 —","Slump ranges: —","Grading (same on every sheet): 20 mm aggregate + 10 mm aggregate combined within BS 882:1992 Table 5 limits; 5 mm sand + dune sand combined within Table 4 limits. Stamp tolerance per table 23 of 206:2013. Sources 'as per customer demand' — coarse: Margala / Sargodha / Sakhi Sarwar; fine: Margala / Lawrencepur / Zinda Pir / Sakhi Sarwar; admixture: Sika 512 Pk / Ultra Sp 437 / Sika 520 BA / Ultra 470 / Fospak 511 / Fospak 560; cement: DG / Maple Leaf / Lucky / Fauji / Bestway"],"verify":["Laboratory / plant name is not shown on the photo","Location and mix code cut off at top of photo","Date not shown","Crush source 'as per customer demand' (Margala / Sargodha / Sakhi Sarwar) — linked to the default crush"]},{"id":"LMX-MUL-6000","photos":[11],"lab":"Not shown — ready-mix plant mix-design sheets, DHA Multan (BS 882:1992 grading)","project":"DHA Multan","psi":6000,"grade":"6000 psi","ref":"Mix class 6000 psi — total binder 550 kg/m³ (photo 11)","date":"","method":"Ready-mix plant design (BS 882:1992 grading)","basis":"Batch weights per 1 m³","yld":1,"total":2401.0,"mats":[{"t":"cem","n":"OPC","kg":550,"code":"CEM"},{"t":"agg","n":"20 mm (3/4\") crushed aggregate","kg":628,"code":"@agg"},{"t":"agg","n":"10 mm (3/8\") crushed aggregate","kg":416,"code":"@agg"},{"t":"sand","n":"Lawrencepur sand","kg":590,"code":"SAND-LP"},{"t":"adm","n":"Admixture-2 (product not named)","kg":5.0,"code":"ADMIX-SP","flag":"Admixture-2 product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Free water","kg":212,"code":"WATER"}],"info":["Total binder 550 kg/m³ (OPC 550, GGBS 0, micro silica 0) · air content 2% · fresh concrete temperature ≤ 32 °C","Blending sand — · Admixture (Sika 512 Pk) — · Admixture-2 5.0","Slump ranges: initial 175 mm (6.890\") · 30 min 155 mm (6.102\") · 60 min 115 mm (4.528\") · 90 min 85 mm (3.346\")","Grading (same on every sheet): 20 mm aggregate + 10 mm aggregate combined within BS 882:1992 Table 5 limits; 5 mm sand + dune sand combined within Table 4 limits. Stamp tolerance per table 23 of 206:2013. Sources 'as per customer demand' — coarse: Margala / Sargodha / Sakhi Sarwar; fine: Margala / Lawrencepur / Zinda Pir / Sakhi Sarwar; admixture: Sika 512 Pk / Ultra Sp 437 / Sika 520 BA / Ultra 470 / Fospak 511 / Fospak 560; cement: DG / Maple Leaf / Lucky / Fauji / Bestway"],"verify":["Laboratory / plant name is not shown on the photo","Mix code partly cut off (reads LC-06 or LC-08)","Date not shown","Crush source 'as per customer demand' (Margala / Sargodha / Sakhi Sarwar) — linked to the default crush"]},{"id":"LMX-MUL-4500","photos":[12],"lab":"Not shown — ready-mix plant mix-design sheets, DHA Multan (BS 882:1992 grading)","project":"DHA Multan","psi":4500,"grade":"4500 psi","ref":"Mix class 4500 psi — total binder 475 kg/m³ (photo 12)","date":"","method":"Ready-mix plant design (BS 882:1992 grading)","basis":"Batch weights per 1 m³","yld":1,"total":2399.7,"mats":[{"t":"cem","n":"OPC","kg":475,"code":"CEM"},{"t":"agg","n":"20 mm (3/4\") crushed aggregate","kg":630,"code":"@agg"},{"t":"agg","n":"10 mm (3/8\") crushed aggregate","kg":420,"code":"@agg"},{"t":"sand","n":"Lawrencepur sand","kg":662,"code":"SAND-LP"},{"t":"adm","n":"Admixture-2 (product not named)","kg":4.7,"code":"ADMIX-SP","flag":"Admixture-2 product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Free water","kg":208,"code":"WATER"}],"info":["Total binder 475 kg/m³ (OPC 475, GGBS 0, micro silica 0) · air content 2% · fresh concrete temperature ≤ 32 °C","Blending sand — · Admixture (Sika 512 Pk) — · Admixture-2 4.7","Slump ranges: initial 190 mm (7.480\") · 30 min 165 mm (6.496\") · 60 min 125 mm (4.921\") · 90 min 90 mm (3.543\")","Grading (same on every sheet): 20 mm aggregate + 10 mm aggregate combined within BS 882:1992 Table 5 limits; 5 mm sand + dune sand combined within Table 4 limits. Stamp tolerance per table 23 of 206:2013. Sources 'as per customer demand' — coarse: Margala / Sargodha / Sakhi Sarwar; fine: Margala / Lawrencepur / Zinda Pir / Sakhi Sarwar; admixture: Sika 512 Pk / Ultra Sp 437 / Sika 520 BA / Ultra 470 / Fospak 511 / Fospak 560; cement: DG / Maple Leaf / Lucky / Fauji / Bestway"],"verify":["Laboratory / plant name is not shown on the photo","Location and mix code cut off at top of photo","Date not shown","Crush source 'as per customer demand' (Margala / Sargodha / Sakhi Sarwar) — linked to the default crush"]},{"id":"LMX-MUL-4000","photos":[13],"lab":"Not shown — ready-mix plant mix-design sheets, DHA Multan (BS 882:1992 grading)","project":"DHA Multan","psi":4000,"grade":"4000 psi","ref":"Mix class 4000 psi — total binder 450 kg/m³ (photo 13)","date":"","method":"Ready-mix plant design (BS 882:1992 grading)","basis":"Batch weights per 1 m³","yld":1,"total":2400.3,"mats":[{"t":"cem","n":"OPC","kg":450,"code":"CEM"},{"t":"agg","n":"20 mm (3/4\") crushed aggregate","kg":630,"code":"@agg"},{"t":"agg","n":"10 mm (3/8\") crushed aggregate","kg":420,"code":"@agg"},{"t":"sand","n":"Lawrencepur sand","kg":690,"code":"SAND-LP"},{"t":"adm","n":"Admixture-2 (product not named)","kg":4.3,"code":"ADMIX-SP","flag":"Admixture-2 product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Free water","kg":206,"code":"WATER"}],"info":["Total binder 450 kg/m³ (OPC 450, GGBS 0, micro silica 0) · air content 2% · fresh concrete temperature ≤ 32 °C","Blending sand — · Admixture (Sika 512 Pk) — · Admixture-2 4.3","Slump ranges: initial 185 mm (7.283\") · 30 min 160 mm (6.299\") · 60 min 130 mm (5.118\") · 90 min 100 mm (3.937\")","Grading (same on every sheet): 20 mm aggregate + 10 mm aggregate combined within BS 882:1992 Table 5 limits; 5 mm sand + dune sand combined within Table 4 limits. Stamp tolerance per table 23 of 206:2013. Sources 'as per customer demand' — coarse: Margala / Sargodha / Sakhi Sarwar; fine: Margala / Lawrencepur / Zinda Pir / Sakhi Sarwar; admixture: Sika 512 Pk / Ultra Sp 437 / Sika 520 BA / Ultra 470 / Fospak 511 / Fospak 560; cement: DG / Maple Leaf / Lucky / Fauji / Bestway"],"verify":["Laboratory / plant name is not shown on the photo","Location and mix code cut off at top of photo","Date not shown","Crush source 'as per customer demand' (Margala / Sargodha / Sakhi Sarwar) — linked to the default crush"]},{"id":"LMX-MUL-136","photos":[14],"lab":"Not shown — ready-mix plant mix-design sheets, DHA Multan (BS 882:1992 grading)","project":"DHA Multan","psi":null,"grade":"1:3:6 nominal","ref":"Mix class 1:3:6 ratio — total binder 250 kg/m³ (photo 14)","date":"","method":"Ready-mix plant design (BS 882:1992 grading)","basis":"Batch weights per 1 m³","yld":1,"total":2335,"mats":[{"t":"cem","n":"OPC","kg":250,"code":"CEM"},{"t":"agg","n":"20 mm (3/4\") crushed aggregate","kg":642,"code":"@agg"},{"t":"agg","n":"10 mm (3/8\") crushed aggregate","kg":420,"code":"@agg"},{"t":"sand","n":"Zinda Pir sand","kg":810,"code":"","flag":"Zinda Pir sand has no Rate Database line — rate needed"},{"t":"water","n":"Free water","kg":213,"code":"WATER"}],"info":["Total binder 250 kg/m³ (OPC 250, GGBS 0, micro silica 0) · air content 2% · fresh concrete temperature ≤ 32 °C","Blending sand — · Admixture (Sika 512 Pk) — · Admixture-2 —","Slump ranges: —","Grading (same on every sheet): 20 mm aggregate + 10 mm aggregate combined within BS 882:1992 Table 5 limits; 5 mm sand + dune sand combined within Table 4 limits. Stamp tolerance per table 23 of 206:2013. Sources 'as per customer demand' — coarse: Margala / Sargodha / Sakhi Sarwar; fine: Margala / Lawrencepur / Zinda Pir / Sakhi Sarwar; admixture: Sika 512 Pk / Ultra Sp 437 / Sika 520 BA / Ultra 470 / Fospak 511 / Fospak 560; cement: DG / Maple Leaf / Lucky / Fauji / Bestway"],"verify":["Laboratory / plant name is not shown on the photo","Location and mix code cut off at top of photo","Date not shown","Mix class printed as '1:3:6 Ratio' — no psi stated","Crush source 'as per customer demand' — linked to the default crush"]},{"id":"LMX-ACI-1500","photos":[15],"lab":"Not shown — 'Concrete Mix Design ACI-211' batch weight sheet","project":"","psi":1500,"grade":"1500 psi","ref":"Concrete Mix Design ACI-211 — batch weight for 1 m³, 1500 psi column","date":"","method":"ACI 211","basis":"Batch weights per 1 m³","yld":1,"total":2390,"mats":[{"t":"cem","n":"Cement","kg":180,"code":"CEM"},{"t":"sand","n":"Sand","kg":810,"code":"@sand"},{"t":"agg","n":"Crush 1/2\" + 3/8\" + 2/8\" (\"1220 KG mix\")","kg":1220,"code":"@agg"},{"t":"water","n":"Water","kg":180,"code":"WATER"}],"info":["Printed total weight 2390 kg; signed blocks: QA/QC Manager, Lab Incharge","Same sheet as the Item Library items RCC-DM-ACI-1500 (added 23-Sep-2026)"],"verify":["Laboratory name is not shown on the photo","Date not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush"]},{"id":"LMX-ACI-4000","photos":[15],"lab":"Not shown — 'Concrete Mix Design ACI-211' batch weight sheet","project":"","psi":4000,"grade":"4000 psi","ref":"Concrete Mix Design ACI-211 — batch weight for 1 m³, 4000 psi column","date":"","method":"ACI 211","basis":"Batch weights per 1 m³","yld":1,"total":2401,"mats":[{"t":"cem","n":"Cement","kg":350,"code":"CEM"},{"t":"sand","n":"Sand","kg":780,"code":"@sand"},{"t":"agg","n":"Crush 1/2\"","kg":392,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":550,"code":"@agg"},{"t":"agg","n":"Crush 2/8\" (1/4\")","kg":165,"code":"@agg"},{"t":"adm","n":"Admixture (product not named)","kg":4.6,"code":"ADMIX-SP","flag":"Admixture product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Water","kg":160,"code":"WATER"}],"info":["Printed total weight 2401 kg; signed blocks: QA/QC Manager, Lab Incharge","Same sheet as the Item Library items RCC-DM-ACI-4000 (added 23-Sep-2026)"],"verify":["Laboratory name is not shown on the photo","Date not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush","Crush 2/8\" has no separate Rate Database line — priced at the default crush line; confirm"]},{"id":"LMX-ACI-4500","photos":[15],"lab":"Not shown — 'Concrete Mix Design ACI-211' batch weight sheet","project":"","psi":4500,"grade":"4500 psi","ref":"Concrete Mix Design ACI-211 — batch weight for 1 m³, 4500 psi column","date":"","method":"ACI 211","basis":"Batch weights per 1 m³","yld":1,"total":2412,"mats":[{"t":"cem","n":"Cement","kg":400,"code":"CEM"},{"t":"sand","n":"Sand","kg":740,"code":"@sand"},{"t":"agg","n":"Crush 1/2\"","kg":340,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":540,"code":"@agg"},{"t":"agg","n":"Crush 2/8\" (1/4\")","kg":220,"code":"@agg"},{"t":"adm","n":"Admixture (product not named)","kg":4.8,"code":"ADMIX-SP","flag":"Admixture product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Water","kg":168,"code":"WATER"}],"info":["Printed total weight 2412 kg; signed blocks: QA/QC Manager, Lab Incharge","Same sheet as the Item Library items RCC-DM-ACI-4500 (added 23-Sep-2026)"],"verify":["Laboratory name is not shown on the photo","Date not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush","Crush 2/8\" has no separate Rate Database line — priced at the default crush line; confirm"]},{"id":"LMX-ACI-6000","photos":[15],"lab":"Not shown — 'Concrete Mix Design ACI-211' batch weight sheet","project":"","psi":6000,"grade":"6000 psi","ref":"Concrete Mix Design ACI-211 — batch weight for 1 m³, 6000 psi column","date":"","method":"ACI 211","basis":"Batch weights per 1 m³","yld":1,"total":2433,"mats":[{"t":"cem","n":"Cement","kg":520,"code":"CEM"},{"t":"sand","n":"Sand","kg":660,"code":"@sand"},{"t":"agg","n":"Crush 1/2\"","kg":321,"code":"@agg"},{"t":"agg","n":"Crush 3/8\"","kg":588,"code":"@agg"},{"t":"agg","n":"Crush 2/8\" (1/4\")","kg":160,"code":"@agg"},{"t":"adm","n":"Admixture (product not named)","kg":6.2,"code":"ADMIX-SP","flag":"Admixture product not named — priced at ADMIX-SP (FosPak SP 568); confirm"},{"t":"water","n":"Water","kg":178,"code":"WATER"}],"info":["Printed total weight 2433 kg; signed blocks: QA/QC Manager, Lab Incharge","Same sheet as the Item Library items RCC-DM-ACI-6000 (added 23-Sep-2026)"],"verify":["Laboratory name is not shown on the photo","Date not shown","Sand and crush sources not shown — linked to the Rate Analysis default sand and crush","Crush 2/8\" has no separate Rate Database line — priced at the default crush line; confirm"]}]}</script>
+<script>
+/* ---- Concrete Mix Design – Lab Rate Analysis: one record per laboratory mix design, priced from the
+   Rate Database. Seed: #raLabMixData (tools/lab_mix_data.py). Records live in RA.labMix, so they are
+   saved with the rest of the rate library (localStorage SAJ_QSCOST_v1) and go into Backup JSON. ---- */
+(function(){
+  var CFT=35.3147, L_PER_CFT=28.3168, SEED=null, CUR=null;
+  var CATS=["Labour","Machinery","Batching","Mixing","Transportation","Pumping","Other"];
+  var TYPES={cem:"Cement",bin:"Binder / filler",sand:"Fine aggregate",agg:"Coarse aggregate",water:"Water",adm:"Admixture"};
+  var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  function el(id){ return document.getElementById(id); }
+  function esc(v){ return raEsc(v); }
+  function dmy(d){ var p=String(d||"").split("-"); return p.length===3 ? p[2]+"-"+MON[+p[1]-1]+"-"+p[0] : (d||""); }
+  function clone(o){ return JSON.parse(JSON.stringify(o)); }
+  function n3(v){ return raN(v,3); }
+  function pk(v){ return raN(v,2); }
+  function csvOut(name, rows){
+    if(window.Papa) return raCsv(name, rows);
+    var t=rows.map(function(r){ return r.map(function(v){ v=v==null?"":String(v); return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }).join(","); }).join("\r\n");
+    zdSaveBlob(new Blob(["\ufeff"+t],{type:"text/csv;charset=utf-8"}), name);
+  }
+
+  function seed(){
+    if(SEED) return SEED;
+    try{ SEED=JSON.parse(el("raLabMixData").textContent); }catch(e){ SEED={rev:"",recs:[],photos:[],dens:{sand:46.65,agg:41}}; }
+    return SEED;
+  }
+  function comps(){ return CATS.slice(0,6).map(function(c){ return {cat:c,desc:"",basis:"m3",amt:0,code:"",qty:0}; }); }
+  function prep(s){
+    var r=clone(s), d=seed().dens;
+    r.status="active"; r.seed=true; r.ed=false; r.vol=100; r.wast=0; r.oh=0; r.prof=0; r.water=true;
+    r.dens={sand:d.sand,agg:d.agg}; r.comps=comps();
+    return r;
+  }
+  /* add seed records that are missing (never re-adds one the user deleted); refresh untouched ones on a new seed rev */
+  function ensure(){
+    if(typeof RA==="undefined"||!RA) return null;
+    var S=seed(), L=RA.labMix, ch=false;
+    if(!L||!L.recs){ L=RA.labMix={rev:"",recs:[],del:[]}; ch=true; }
+    L.del=L.del||[];
+    S.recs.forEach(function(s){
+      if(L.del.indexOf(s.id)>=0) return;
+      var i=L.recs.findIndex(function(r){ return r.id===s.id; });
+      if(i<0){ L.recs.push(prep(s)); ch=true; }
+      else if(L.rev!==S.rev && !L.recs[i].ed){
+        var o=L.recs[i], n=prep(s);
+        ["status","vol","wast","oh","prof","water","dens","comps"].forEach(function(k){ n[k]=o[k]; });
+        L.recs[i]=n; ch=true;
+      }
+    });
+    if(L.rev!==S.rev){ L.rev=S.rev; ch=true; }
+    if(ch) raPersist();
+    return L;
+  }
+
+  /* ---------- calculation ---------- */
+  function code(m){ return m.code==="@sand" ? RA.set.sand : m.code==="@agg" ? RA.set.agg : (m.code||""); }
+  function line(c){ return c ? RA.rates.find(function(x){ return x.code===c; })||null : null; }
+  function practical(m, r){
+    var kg=raNum(m.kg)/(raNum(r.yld)||1);
+    if(m.t==="cem") return {q:kg/50,u:"Bag",s:raN(kg,2)+" kg ÷ 50 kg/bag"};
+    if(m.t==="sand") return {q:kg/r.dens.sand,u:"Cft",s:raN(kg,2)+" kg ÷ "+r.dens.sand+" kg/cft"};
+    if(m.t==="agg") return {q:kg/r.dens.agg,u:"Cft",s:raN(kg,2)+" kg ÷ "+r.dens.agg+" kg/cft"};
+    if(m.t==="water") return {q:kg,u:"Ltr",s:"1 kg = 1 litre"};
+    if(m.t==="adm" && m.sg) return {q:kg/m.sg,u:"Ltr",s:raN(kg,2)+" kg ÷ Sg "+m.sg};
+    return {q:kg,u:"Kg",s:"as printed"};
+  }
+  /* quantity per m³ in the unit the Rate Database line is priced in */
+  function inUnit(m, r, u){
+    var kg=raNum(m.kg)/(raNum(r.yld)||1); u=String(u||"").toLowerCase();
+    if(u==="kg") return {q:kg,s:"kg"};
+    if(u==="ton"||u==="tonne"||u==="mt") return {q:kg/1000,s:"kg ÷ 1000"};
+    if(u==="bag") return m.t==="cem"||m.t==="bin" ? {q:kg/50,s:"kg ÷ 50 kg/bag"} : null;
+    if(u==="cft"){
+      if(m.t==="sand") return {q:kg/r.dens.sand,s:"kg ÷ "+r.dens.sand+" kg/cft"};
+      if(m.t==="agg") return {q:kg/r.dens.agg,s:"kg ÷ "+r.dens.agg+" kg/cft"};
+      if(m.t==="water") return {q:kg/L_PER_CFT,s:"litres ÷ "+L_PER_CFT};
+      if(m.t==="cem") return {q:kg/50*RA.set.bagCft,s:"bags × "+RA.set.bagCft+" cft/bag"};
+      return null;
+    }
+    if(u==="ltr"||u==="litre"||u==="liter"||u==="l"){
+      if(m.t==="water") return {q:kg,s:"1 kg = 1 litre"};
+      if(m.sg) return {q:kg/m.sg,s:"kg ÷ Sg "+m.sg};
+      return null;
+    }
+    return null;
+  }
+  function compAmt(c){
+    if(c.basis==="cft") return raNum(c.amt)*CFT;
+    if(c.basis==="line"){ var l=line(c.code); return l ? raNum(c.qty)*raNum(l.rate)*CFT : 0; }
+    return raNum(c.amt);
+  }
+  function calc(r){
+    var rows=(r.mats||[]).map(function(m){
+      var c=code(m), l=line(c), f=[], cv=l?inUnit(m,r,l.unit):null, rate=l?raNum(l.rate):0, amt=0;
+      if(m.flag) f.push(m.flag);
+      if(!c) f.push("No Rate Database line linked — rate needed");
+      else if(!l) f.push("Line "+c+" is not in the Rate Database — rate needed");
+      else if(!cv) f.push("Cannot convert "+TYPES[m.t]+" kg to "+l.unit+(m.t==="adm"?" (enter the specific gravity)":""));
+      else if(!rate) f.push("Rate is 0 in the Rate Database — rate needed");
+      if(cv) amt=cv.q*rate;
+      if(m.t==="water"&&!r.water){ amt=0; f.push("Water cost excluded for this record"); }
+      return {m:m,code:c,l:l,cv:cv,rate:rate,amt:amt,p:practical(m,r),f:f};
+    });
+    var A=rows.reduce(function(s,x){ return s+x.amt; },0), B=A*raNum(r.wast)/100, cat={}, C=0;
+    (r.comps||[]).forEach(function(c){ var a=compAmt(c); cat[c.cat]=(cat[c.cat]||0)+a; C+=a; });
+    var sub=A+B+C, G=sub*raNum(r.oh)/100, H=(RA.set.profOnOh?sub+G:sub)*raNum(r.prof)/100, T=sub+G+H;
+    var gaps=rows.filter(function(x){ return !x.cv||!x.rate; }).filter(function(x){ return !(x.m.t==="water"&&!r.water); }).length;
+    return {rows:rows,A:A,B:B,cat:cat,C:C,sub:sub,G:G,H:H,T:T,cft:T/CFT,gaps:gaps};
+  }
+  function needsVerify(r){ return (r.verify&&r.verify.length)||calc(r).gaps>0; }
+
+  /* ---------- lists & filters ---------- */
+  function gkey(r){ return r.psi!=null&&r.psi!=="" ? String(r.psi) : (r.grade||"PSI not shown"); }
+  function glabel(k){ return /^\d+(\.\d+)?$/.test(k) ? k+" psi" : k; }
+  function gsort(a,b){ var x=/^\d/.test(a), y=/^\d/.test(b); return x&&y ? a-b : x ? -1 : y ? 1 : a.localeCompare(b); }
+  function hay(r){ return [r.id,gkey(r),r.grade,r.lab,r.project,r.ref,r.date,dmy(r.date),r.method,(r.info||[]).join(" "),
+    (r.mats||[]).map(function(m){ return m.n; }).join(" ")].join(" ").toLowerCase(); }
+  function byStatus(L){
+    var st=el("lmxStat").value;
+    return L.recs.filter(function(r){ return st==="all" ? true : st==="archived" ? r.status==="archived" :
+      st==="verify" ? r.status!=="archived"&&needsVerify(r) : r.status!=="archived"; });
+  }
+  function filtered(L){
+    var q=(el("lmxQ").value||"").toLowerCase().trim().split(/\s+/).filter(Boolean),
+        g=el("lmxPsi").value, lab=el("lmxLab").value, d=el("lmxDate").value;
+    return byStatus(L).filter(function(r){
+      var h=hay(r);
+      return (!g||gkey(r)===g)&&(!lab||r.lab===lab)&&(!d||(d==="-"?!r.date:r.date===d))&&q.every(function(w){ return h.indexOf(w)>=0; });
+    });
+  }
+  function fill(sel, first, vals, lab){
+    var cur=sel.value;
+    sel.innerHTML=(first?'<option value="">'+first+'</option>':"")+vals.map(function(v){
+      return '<option value="'+esc(v)+'">'+esc(lab?lab(v):v)+'</option>'; }).join("");
+    if(vals.indexOf(cur)>=0||(!cur&&first)) sel.value=cur;
+  }
+  function uniq(a){ var o={}; a.forEach(function(v){ o[v]=1; }); return Object.keys(o); }
+
+  /* ---------- render ---------- */
+  function render(){
+    var L=ensure(); if(!L||!el("rav-lmx")) return;
+    var S=seed(), base=byStatus(L);
+    fill(el("lmxPsi"),"All grades",uniq(base.map(gkey)).sort(gsort),glabel);
+    fill(el("lmxLab"),"All laboratories",uniq(base.map(function(r){ return r.lab; })).sort());
+    var ds=uniq(base.map(function(r){ return r.date||"-"; })).sort().reverse();
+    fill(el("lmxDate"),"All dates",ds,function(d){ return d==="-"?"Date not shown":dmy(d); });
+    var rows=filtered(L);
+    var act=L.recs.filter(function(r){ return r.status!=="archived"; });
+    el("lmxInfo").innerHTML='<b>Every laboratory mix design is its own record</b> — designs of the same psi from different labs are never merged or averaged. '+
+      'Quantities are the lab&rsquo;s batch weights per 1 m³; each material is priced from the linked <b>Rate Database</b> line, so a rate changed there (or here) re-prices every record. '+
+      'Sand and crush are converted kg &rarr; Cft at '+S.dens.sand+' / '+S.dens.agg+' kg/cft ('+esc(S.dens.src)+'; editable per record). '+
+      'Labour, machinery, batching, mixing, transport, pumping, wastage, overheads and profit start at 0 — they are not added unless you enter them. '+
+      'Seed: '+esc(S.source)+'.'+(L.del.length?' <button class="rabtn sm" id="lmxRestore">Restore '+L.del.length+' deleted seed record'+(L.del.length>1?"s":"")+'</button>':"");
+    var labs=uniq(act.map(function(r){ return r.lab; })), gr=uniq(act.filter(function(r){ return r.psi!=null; }).map(gkey));
+    el("lmxKpis").innerHTML=[["Photos reviewed",S.photos.length,S.photos.filter(function(p){ return !p[2].length; }).length+" duplicate photo"],
+      ["Mix design records",act.length,L.recs.length-act.length+" archived · "+L.del.length+" deleted"],
+      ["Unique PSI grades",gr.length,act.filter(function(r){ return r.psi==null; }).length+" records without a psi"],
+      ["Laboratory sources",labs.length,"lab name shown on "+labs.filter(function(l){ return !/^Not shown/.test(l); }).length],
+      ["Needs verification",act.filter(needsVerify).length,"missing / unreadable data or unrated line"]]
+      .map(function(k){ return '<div class="rak"><h5>'+k[0]+'</h5><div class="v">'+k[1]+'</div><div class="s">'+esc(k[2])+'</div></div>'; }).join("");
+    el("lmxN").textContent=rows.length+" of "+L.recs.length+" records shown";
+    el("lmxCards").innerHTML=rows.length ? rows.map(function(r){
+      var c=calc(r), on=CUR===r.id;
+      return '<div data-lmx-pick="'+esc(r.id)+'" style="cursor:pointer;border:1px solid '+(on?"#4b3b8f":"var(--line)")+';border-radius:8px;padding:9px 11px;background:'+(on?"#f3f0ff":"#fff")+'">'+
+        '<div style="display:flex;justify-content:space-between;gap:6px"><b style="color:var(--head)">'+esc(glabel(gkey(r)))+'</b><code style="font-size:10px">'+esc(r.id)+'</code></div>'+
+        '<div style="font-size:11px;margin-top:3px">'+esc(r.lab)+'</div>'+
+        '<div style="font-size:10.5px;color:var(--muted);margin-top:2px">'+esc(r.ref)+(r.date?" · "+dmy(r.date):"")+'</div>'+
+        '<div style="font-size:11.5px;margin-top:6px"><b>PKR '+pk(c.cft)+'</b>/cft · PKR '+raN(c.T,0)+'/m³</div>'+
+        '<div style="margin-top:4px">'+(r.status==="archived"?'<span class="vstat I">Archived</span> ':"")+
+        (needsVerify(r)?'<span class="vstat A">Needs verification</span>':'<span class="vstat V">Complete</span>')+(r.ed?' <span class="vstat I">Edited</span>':"")+'</div></div>';
+    }).join("") : '<div class="raempty"><b>No record matches</b>Clear the filters.</div>';
+    /* step 1 / step 2 pickers */
+    fill(el("lmxPick1"),"",uniq(base.map(gkey)).sort(gsort),glabel);
+    if(el("lmxPsi").value) el("lmxPick1").value=el("lmxPsi").value;
+    var cr=L.recs.find(function(r){ return r.id===CUR; });
+    if(!cr||base.indexOf(cr)<0){ cr=(rows[0]||base[0]||null); CUR=cr?cr.id:null; }
+    if(cr) el("lmxPick1").value=gkey(cr);
+    pick2();
+    body();
+  }
+  function pick2(){
+    var L=RA.labMix, g=el("lmxPick1").value, list=byStatus(L).filter(function(r){ return gkey(r)===g; });
+    el("lmxPick2").innerHTML=list.map(function(r){
+      return '<option value="'+esc(r.id)+'">'+esc(r.lab.replace(/^Not shown — /,"")+" — "+r.ref+" ["+r.id+"]")+'</option>'; }).join("");
+    if(list.some(function(r){ return r.id===CUR; })) el("lmxPick2").value=CUR;
+    else { CUR=list[0]?list[0].id:null; }
+  }
+  function rec(){ return CUR ? RA.labMix.recs.find(function(r){ return r.id===CUR; }) : null; }
+
+  function lineOpts(m, cur){
+    var re={cem:/cement|^CEM/i,bin:/fly ?ash|silica|ggbs|slag/i,sand:/sand/i,agg:/crush|aggregate|gravel|bajri/i,water:/water/i,adm:/admix|plasticiz/i}[m.t];
+    var ls=RA.rates.filter(function(x){ return x.kind==="M"&&(re.test(x.name)||re.test(x.code)||x.code===cur); });
+    var o='<option value="">— none (rate needed) —</option>';
+    if(m.t==="sand") o+='<option value="@sand"'+(cur==="@sand"?" selected":"")+'>Default sand (Settings) &rarr; '+esc(RA.set.sand)+'</option>';
+    if(m.t==="agg") o+='<option value="@agg"'+(cur==="@agg"?" selected":"")+'>Default crush (Settings) &rarr; '+esc(RA.set.agg)+'</option>';
+    return o+ls.map(function(x){ return '<option value="'+esc(x.code)+'"'+(x.code===cur?" selected":"")+'>'+esc(x.code+" — "+x.name+" ("+x.unit+")")+'</option>'; }).join("");
+  }
+
+  function body(){
+    var r=rec(), B=el("lmxBody");
+    if(!r){ B.innerHTML='<div class="racard"><div class="bd"><div class="raempty"><b>No mix design selected</b>Pick a psi and a laboratory mix design above.</div></div></div>'; return; }
+    var c=calc(r), V=raNum(r.vol), Vm=V/CFT;
+    var h='<div class="racard"><div class="hd"><div><h3>'+esc(glabel(gkey(r)))+' &mdash; '+esc(r.lab)+'</h3>'+
+      '<div class="sub"><code>'+esc(r.id)+'</code> · '+esc(r.ref)+' · Date: '+(r.date?dmy(r.date):"<i>Needs Verification (not shown)</i>")+
+      ' · Method: '+esc(r.method||"—")+' · Basis: '+esc(r.basis||"—")+(r.project?" · Project: "+esc(r.project):"")+
+      ' · Source photo'+((r.photos||[]).length>1?"s ":" ")+esc((r.photos||[]).join(", ")||"— (entered by hand)")+'</div></div></div><div class="bd">';
+    if(r.verify&&r.verify.length) h+='<div class="rawarn"><b>Needs Verification:</b><ul style="margin:4px 0 0 18px">'+r.verify.map(function(v){ return "<li>"+esc(v)+"</li>"; }).join("")+'</ul></div>';
+    if(r.info&&r.info.length) h+='<details><summary style="cursor:pointer;font-size:12px;font-weight:600">Laboratory data as printed ('+r.info.length+' notes)</summary><ul style="margin:6px 0 0 18px;font-size:11.5px;line-height:1.55">'+r.info.map(function(v){ return "<li>"+esc(v)+"</li>"; }).join("")+'</ul></details>';
+    h+='<div class="rakpis" style="margin-top:12px">'+[["Total cost per Cft","PKR "+pk(c.cft),"materials "+pk(c.A/CFT)+"/cft"],
+      ["Total cost per m³","PKR "+pk(c.T),"materials "+pk(c.A)+"/m³"],
+      ["Selected volume",n3(V)+" Cft",n3(Vm)+" m³"],
+      ["Cost of selected volume","PKR "+raN(c.T*Vm,0),"materials PKR "+raN(c.A*Vm,0)],
+      ["Unrated / flagged lines",c.gaps,c.gaps?"enter a rate or link a line":"every material priced"]]
+      .map(function(k){ return '<div class="rak"><h5>'+k[0]+'</h5><div class="v">'+k[1]+'</div><div class="s">'+esc(k[2])+'</div></div>'; }).join("")+'</div>';
+    h+='<div class="raform">'+
+      '<div class="fg"><label>Concrete volume (Cft)</label><input type="number" step="0.001" data-lf="vol" value="'+V+'"></div>'+
+      '<div class="fg"><label>Yield — m³ per listed batch</label><input type="number" step="0.001" data-lf="yld" value="'+(r.yld||1)+'"></div>'+
+      '<div class="fg"><label>Sand density (kg/cft)</label><input type="number" step="0.01" data-lf="dsand" value="'+r.dens.sand+'"></div>'+
+      '<div class="fg"><label>Crush density (kg/cft)</label><input type="number" step="0.01" data-lf="dagg" value="'+r.dens.agg+'"></div>'+
+      '<div class="fg"><label>Wastage on materials (%)</label><input type="number" step="0.01" data-lf="wast" value="'+r.wast+'"></div>'+
+      '<div class="fg"><label>Overheads (%)</label><input type="number" step="0.01" data-lf="oh" value="'+r.oh+'"></div>'+
+      '<div class="fg"><label>Profit (%)</label><input type="number" step="0.01" data-lf="prof" value="'+r.prof+'"></div>'+
+      '<div class="fg"><label>Water cost</label><select data-lf="water"><option value="1"'+(r.water?" selected":"")+'>Include (WATER line)</option><option value="0"'+(r.water?"":" selected")+'>Exclude</option></select></div>'+
+      '</div><div style="margin-top:9px;display:flex;gap:8px;flex-wrap:wrap">'+
+      '<button class="rabtn sm" data-lmx="house">Apply house wastage / OH / profit ('+RA.set.wast+'% / '+RA.set.oh+'% / '+RA.set.prof+'%)</button>'+
+      '<button class="rabtn sm" data-lmx="site">Load site-mix labour &amp; plant (as Item Library design mixes)</button>'+
+      '<button class="rabtn sm" data-lmx="rmc">Load pump line (P-PUMP)</button></div></div></div>';
+
+    /* material table */
+    h+='<div class="racard"><div class="hd"><div><h3>Material consumption &amp; rate analysis — per m³ and per Cft</h3>'+
+      '<div class="sub">Lab quantities are editable; rates come from the Rate Database (click a rate to update the line with its source and date).</div></div><div class="sp"></div>'+
+      '<button class="rabtn sm" data-lmx="addmat">&#43; Material</button></div><div class="bd flush"><div class="rascroll"><table class="ratbl"><thead><tr>'+
+      '<th>#</th><th style="min-width:190px">Material (as on lab sheet)</th><th class="n">Lab qty kg/m³</th><th class="n">Practical qty / m³</th>'+
+      '<th style="min-width:210px">Rate Database line</th><th class="n">Qty / m³ (rate unit)</th><th class="n">Rate (PKR)</th><th class="n">Amount / m³</th>'+
+      '<th class="n">Qty / Cft</th><th class="n">Amount / Cft</th><th class="n">For '+n3(V)+' Cft</th><th class="n">Cost for volume</th><th>Flags</th><th></th></tr></thead><tbody>';
+    c.rows.forEach(function(x,i){
+      var m=x.m, u=x.l?x.l.unit:"—";
+      h+='<tr><td>'+(i+1)+'</td><td>'+esc(m.n)+'<div style="font-size:10px;color:var(--muted)">'+TYPES[m.t]+'</div></td>'+
+        '<td class="n"><input type="number" step="0.01" data-lm="'+i+'" data-k="kg" value="'+m.kg+'" style="width:85px"></td>'+
+        '<td class="n">'+n3(x.p.q)+' '+x.p.u+'<div style="font-size:10px;color:var(--muted)">'+esc(x.p.s)+'</div></td>'+
+        '<td><select data-lm="'+i+'" data-k="code">'+lineOpts(m,m.code)+'</select></td>'+
+        '<td class="n">'+(x.cv?n3(x.cv.q)+" "+esc(u)+'<div style="font-size:10px;color:var(--muted)">'+esc(x.cv.s)+'</div>':"—")+'</td>'+
+        '<td class="n">'+(x.l?'<a href="#" data-lrate="'+esc(x.code)+'"><b>'+pk(x.rate)+'</b></a> / '+esc(u)+'<div>'+raVsBadge(x.l.vs)+'</div>':'<a href="#" data-llink="'+i+'">link a line</a>')+'</td>'+
+        '<td class="n"><b>'+pk(x.amt)+'</b></td>'+
+        '<td class="n">'+(x.cv?n3(x.cv.q/CFT):"—")+'</td><td class="n">'+pk(x.amt/CFT)+'</td>'+
+        '<td class="n">'+n3(x.p.q*Vm)+' '+x.p.u+'</td><td class="n">'+pk(x.amt*Vm)+'</td>'+
+        '<td style="font-size:10.5px;color:#9b2222;min-width:160px">'+x.f.map(esc).join("<br>")+'</td>'+
+        '<td><button class="rabtn sm dng" data-lmdel="'+i+'" title="Remove material">&#10005;</button></td></tr>';
+    });
+    h+='</tbody><tfoot><tr><td></td><td>A. Materials</td><td class="n">'+raN(c.rows.reduce(function(s,x){ return s+raNum(x.m.kg); },0),2)+'</td><td colspan="4"></td>'+
+      '<td class="n">'+pk(c.A)+'</td><td></td><td class="n">'+pk(c.A/CFT)+'</td><td></td><td class="n">'+pk(c.A*Vm)+'</td><td colspan="2"></td></tr></tfoot></table></div></div></div>';
+
+    /* other components */
+    h+='<div class="racard"><div class="hd"><div><h3>Labour, machinery, batching, mixing, transport &amp; pumping</h3>'+
+      '<div class="sub">Separate editable components, 0 by default. Basis: lump PKR per m³, lump PKR per Cft, or a Rate Database line × quantity per Cft of concrete.</div></div><div class="sp"></div>'+
+      '<button class="rabtn sm" data-lmx="addcomp">&#43; Cost line</button></div><div class="bd flush"><div class="rascroll"><table class="ratbl"><thead><tr>'+
+      '<th>Component</th><th style="min-width:160px">Description</th><th>Basis</th><th style="min-width:200px">Amount / Rate DB line</th><th class="n">Qty per Cft</th>'+
+      '<th class="n">Per m³</th><th class="n">Per Cft</th><th class="n">For volume</th><th></th></tr></thead><tbody>';
+    (r.comps||[]).forEach(function(k,i){
+      var a=compAmt(k), l=k.basis==="line"?line(k.code):null;
+      h+='<tr><td><select data-lc="'+i+'" data-k="cat">'+CATS.map(function(x){ return '<option'+(x===k.cat?" selected":"")+'>'+x+'</option>'; }).join("")+'</select></td>'+
+        '<td><input data-lc="'+i+'" data-k="desc" value="'+esc(k.desc)+'" placeholder="e.g. mixer hire, TM transport"></td>'+
+        '<td><select data-lc="'+i+'" data-k="basis"><option value="m3"'+(k.basis==="m3"?" selected":"")+'>PKR per m³</option><option value="cft"'+(k.basis==="cft"?" selected":"")+'>PKR per Cft</option><option value="line"'+(k.basis==="line"?" selected":"")+'>Rate DB line</option></select></td>'+
+        '<td>'+(k.basis==="line"?'<select data-lc="'+i+'" data-k="code"><option value="">— pick a line —</option>'+RA.rates.filter(function(x){ return x.kind!=="M"||x.code===k.code; }).map(function(x){
+            return '<option value="'+esc(x.code)+'"'+(x.code===k.code?" selected":"")+'>'+esc(x.code+" — "+x.name+" · "+pk(raNum(x.rate))+"/"+x.unit)+'</option>'; }).join("")+'</select>'+(l?' '+raVsBadge(l.vs):"")
+          :'<input type="number" step="0.01" data-lc="'+i+'" data-k="amt" value="'+k.amt+'" style="width:120px">')+'</td>'+
+        '<td class="n">'+(k.basis==="line"?'<input type="number" step="0.0001" data-lc="'+i+'" data-k="qty" value="'+k.qty+'" style="width:90px">':"—")+'</td>'+
+        '<td class="n">'+pk(a)+'</td><td class="n">'+pk(a/CFT)+'</td><td class="n">'+pk(a*Vm)+'</td>'+
+        '<td><button class="rabtn sm dng" data-lcdel="'+i+'">&#10005;</button></td></tr>';
+    });
+    h+='</tbody></table></div></div></div>';
+
+    /* build-up summary */
+    var bu=[["A","Materials",c.A],["B","Wastage on materials @ "+raNum(r.wast)+"%",c.B]];
+    var ch=67;
+    CATS.forEach(function(k){ if(c.cat[k]!==undefined) bu.push([String.fromCharCode(ch++),k,c.cat[k]]); });
+    bu.push(["","Subtotal",c.sub,1],[String.fromCharCode(ch++),"Overheads @ "+raNum(r.oh)+"%",c.G],[String.fromCharCode(ch++),"Profit @ "+raNum(r.prof)+"%"+(RA.set.profOnOh?" (on subtotal + OH)":""),c.H],["","Total rate",c.T,1]);
+    h+='<div class="racard"><div class="hd"><div><h3>Rate build-up</h3><div class="sub">1 m³ = '+CFT+' Cft.</div></div></div><div class="bd flush"><table class="ratbl"><thead><tr>'+
+      '<th></th><th>Head</th><th class="n">PKR per m³</th><th class="n">PKR per Cft</th><th class="n">PKR for '+n3(V)+' Cft ('+n3(Vm)+' m³)</th></tr></thead><tbody>'+
+      bu.map(function(b){ var s=b[3]?' style="font-weight:700;background:#f4f7fb"':""; return '<tr'+s+'><td>'+b[0]+'</td><td>'+esc(b[1])+'</td><td class="n">'+pk(b[2])+'</td><td class="n">'+pk(b[2]/CFT)+'</td><td class="n">'+pk(b[2]*Vm)+'</td></tr>'; }).join("")+
+      '</tbody></table></div></div>';
+    B.innerHTML=h;
+  }
+
+  /* ---------- actions ---------- */
+  function save(r, touched){ if(r&&touched) r.ed=true; raPersist(); render(); }
+  function uid(){ var id; do{ id="LMX-U-"+Date.now().toString(36).toUpperCase()+Math.floor(Math.random()*36).toString(36).toUpperCase(); }
+    while(RA.labMix.recs.some(function(r){ return r.id===id; })||RA.labMix.del.indexOf(id)>=0); return id; }
+
+  function editRate(c){
+    var l=line(c); if(!l) return;
+    raModal("Update rate line "+c,
+      '<p><b>'+esc(l.name)+'</b> — per '+esc(l.unit)+'. This line is shared: changing it re-prices every rate analysis, BOQ line and lab mix record that uses it.</p>'+
+      '<div class="raform" style="grid-template-columns:repeat(2,minmax(0,1fr))">'+
+      '<div class="fg"><label>Rate (PKR per '+esc(l.unit)+')</label><input type="number" step="0.01" id="lmxRR" value="'+raNum(l.rate)+'"></div>'+
+      '<div class="fg"><label>Effective date</label><input type="date" id="lmxRD" value="'+esc(l.date||"")+'"></div>'+
+      '<div class="fg"><label>Status</label><select id="lmxRV"><option value="V">V — verified (PO / GRN / quote)</option><option value="I">I — dated market indication</option><option value="A">A — assumption</option></select></div>'+
+      '<div class="fg w2" style="grid-column:span 2"><label>Source / remarks — &lt;source&gt;, DD-Mon-YYYY — &lt;details&gt;</label><input id="lmxRS" value="'+esc(l.src||"")+'"></div></div>'+
+      '<p id="lmxRErr" style="color:var(--red);font-size:12px"></p>',
+      function(){
+        var rt=raNum(el("lmxRR").value), d=el("lmxRD").value, s=el("lmxRS").value.trim(), v=el("lmxRV").value;
+        if(rt&&(!d||!s)){ el("lmxRErr").textContent="A rate needs its source and date (house rule). Leave it at 0 if there is no dated source."; return; }
+        if(rt&&v!=="A"&&!/\d{2}-[A-Z][a-z]{2}-\d{4}/.test(s)){ el("lmxRErr").textContent="Write the source as <source>, DD-Mon-YYYY — <details>, or mark it A — assumption."; return; }
+        Object.assign(l,{rate:rt,date:d,src:s,vs:v}); raModalClose(); raPersist(); render();
+      },"Update line");
+    el("lmxRV").value=l.vs||"A";
+  }
+
+  function editDetails(r, isNew){
+    var f=[["psi","Concrete strength (psi) — blank if not stated","number"],["grade","Grade label (used when psi is blank, e.g. 1:3:6 nominal)"],["lab","Laboratory / plant"],
+      ["project","Project"],["ref","Mix design reference"],["date","Date","date"],["method","Method"],["basis","Quantity basis"]];
+    raModal(isNew?"New laboratory mix design":"Edit "+r.id,
+      '<div class="raform" style="grid-template-columns:repeat(2,minmax(0,1fr))">'+f.map(function(x){
+        return '<div class="fg"><label>'+x[1]+'</label><input id="lmxE_'+x[0]+'" type="'+(x[2]||"text")+'" value="'+esc(r[x[0]]==null?"":r[x[0]])+'"></div>'; }).join("")+
+      '<div class="fg" style="grid-column:span 2"><label>Laboratory data / notes — one per line</label><textarea id="lmxE_info" rows="4" style="width:100%">'+esc((r.info||[]).join("\n"))+'</textarea></div>'+
+      '<div class="fg" style="grid-column:span 2"><label>Needs verification — one item per line (clear when checked)</label><textarea id="lmxE_verify" rows="3" style="width:100%">'+esc((r.verify||[]).join("\n"))+'</textarea></div></div>'+
+      (isNew?'<p style="font-size:12px;color:var(--muted)">Add the materials in the analysis table after saving (&#43; Material).</p>':"")+'<p id="lmxEErr" style="color:var(--red);font-size:12px"></p>',
+      function(){
+        var o={}; f.forEach(function(x){ o[x[0]]=el("lmxE_"+x[0]).value.trim(); });
+        o.psi=o.psi===""?null:raNum(o.psi);
+        if(!o.lab||!o.ref){ el("lmxEErr").textContent="Laboratory and mix design reference are required."; return; }
+        o.grade=o.psi!=null?o.psi+" psi":(o.grade||"PSI not shown");
+        o.info=el("lmxE_info").value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+        o.verify=el("lmxE_verify").value.split("\n").map(function(s){ return s.trim(); }).filter(Boolean);
+        var dup=RA.labMix.recs.find(function(x){ return x!==r&&x.lab===o.lab&&gkey(x)===(o.psi!=null?String(o.psi):o.grade)&&x.ref===o.ref; });
+        if(dup&&!el("lmxEErr").dataset.warned){ el("lmxEErr").dataset.warned=1; el("lmxEErr").textContent="Record "+dup.id+" already has this lab, grade and reference. Press again to save anyway (it keeps its own ID)."; return; }
+        Object.assign(r,o);
+        if(isNew){ RA.labMix.recs.push(r); }
+        CUR=r.id; el("lmxStat").value=r.status==="archived"?"archived":"active"; el("lmxPsi").value="";
+        raModalClose(); save(r,true);
+      }, isNew?"Create record":"Save");
+  }
+
+  function newRec(){
+    var r={id:uid(),photos:[],lab:"",project:"",psi:null,grade:"",ref:"",date:"",method:"",basis:"Batch weights per 1 m³",yld:1,total:0,
+      mats:[{t:"cem",n:"Cement",kg:0,code:"CEM"},{t:"sand",n:"Sand",kg:0,code:"@sand"},{t:"agg",n:"Crush",kg:0,code:"@agg"},{t:"water",n:"Water",kg:0,code:"WATER"}],
+      info:[],verify:[],status:"active",seed:false,ed:true,vol:100,wast:0,oh:0,prof:0,water:true,dens:clone(seed().dens),comps:comps(),created:raToday()};
+    delete r.dens.src;
+    r.dens={sand:seed().dens.sand,agg:seed().dens.agg};
+    editDetails(r,true);
+  }
+
+  function addMat(r){
+    raModal("Add material to "+r.id,'<div class="raform" style="grid-template-columns:repeat(3,minmax(0,1fr))">'+
+      '<div class="fg"><label>Type</label><select id="lmxMT">'+Object.keys(TYPES).map(function(k){ return '<option value="'+k+'">'+TYPES[k]+'</option>'; }).join("")+'</select></div>'+
+      '<div class="fg"><label>Name as on lab sheet</label><input id="lmxMN"></div><div class="fg"><label>kg per m³</label><input type="number" step="0.01" id="lmxMK" value="0"></div>'+
+      '<div class="fg"><label>Specific gravity (admixture, for litres)</label><input type="number" step="0.001" id="lmxMS"></div></div>',
+      function(){
+        var t=el("lmxMT").value, m={t:t,n:el("lmxMN").value.trim()||TYPES[t],kg:raNum(el("lmxMK").value),
+          code:{cem:"CEM",sand:"@sand",agg:"@agg",water:"WATER",adm:"ADMIX-SP",bin:""}[t]};
+        if(raNum(el("lmxMS").value)) m.sg=raNum(el("lmxMS").value);
+        r.mats.push(m); raModalClose(); save(r,true);
+      },"Add");
+  }
+
+  function doAct(a){
+    var r=rec();
+    if(a==="new") return newRec();
+    if(!r) return;
+    if(a==="edit") return editDetails(r,false);
+    if(a==="dup"){ var d=clone(r); d.id=uid(); d.seed=false; d.ed=true; d.status="active"; d.ref=r.ref+" (copy)"; d.copyOf=r.id; d.created=raToday();
+      RA.labMix.recs.push(d); CUR=d.id; el("lmxStat").value="active"; return save(d,false); }
+    if(a==="arch"){ r.status=r.status==="archived"?"active":"archived"; el("lmxStat").value=r.status==="archived"?"archived":"active"; return save(r,false); }
+    if(a==="del") return raModal("Delete "+r.id,'<p>Delete <b>'+esc(glabel(gkey(r)))+' — '+esc(r.lab)+'</b> ('+esc(r.ref)+')?</p>'+
+      (r.seed?'<p style="font-size:12px;color:var(--muted)">It came from the lab photos; it will not be re-added automatically. &ldquo;Restore deleted seed records&rdquo; brings it back.</p>':'<p style="font-size:12px;color:var(--muted)">This cannot be undone. Archive it instead to keep it.</p>'),
+      function(){ RA.labMix.recs=RA.labMix.recs.filter(function(x){ return x!==r; }); if(r.seed) RA.labMix.del.push(r.id); CUR=null; raModalClose(); save(null,false); },"Delete");
+    if(a==="house"){ r.wast=RA.set.wast; r.oh=RA.set.oh; r.prof=RA.set.prof; return save(r,false); }
+    if(a==="site"){
+      r.comps=r.comps.filter(function(c){ return !((c.cat==="Labour"||c.cat==="Machinery")&&!raNum(c.amt)&&!c.code); });
+      [["Labour","Mason","L-MASON",.014],["Labour","Helper","L-HELPER",.055],["Labour","Mixer operator","L-OPER",.007],
+       ["Machinery","Mixer","P-MIXER",.012],["Machinery","Vibrator","P-VIBR",.011]].forEach(function(x){
+        if(!r.comps.some(function(c){ return c.basis==="line"&&c.code===x[2]; })) r.comps.push({cat:x[0],desc:x[1]+" — site mix, as Item Library RCC design mixes",basis:"line",code:x[2],qty:x[3],amt:0}); });
+      return save(r,false);
+    }
+    if(a==="rmc"){
+      r.comps=r.comps.filter(function(c){ return !(c.cat==="Pumping"&&!raNum(c.amt)&&!c.code); });
+      if(!r.comps.some(function(c){ return c.code==="P-PUMP"; })) r.comps.push({cat:"Pumping",desc:"Concrete pump",basis:"line",code:"P-PUMP",qty:1,amt:0});
+      return save(r,false);
+    }
+    if(a==="addmat") return addMat(r);
+    if(a==="addcomp"){ r.comps.push({cat:"Other",desc:"",basis:"m3",amt:0,code:"",qty:0}); return save(r,false); }
+    if(a==="csv") return csvOut("Lab_Mix_Rate_Analysis_"+r.id+"_"+raToday()+".csv", sheetRows(r));
+    if(a==="xlsx") return xlsx(r);
+    if(a==="print") return printRec(r);
+  }
+
+  /* ---------- export ---------- */
+  function sheetRows(r){
+    var c=calc(r), V=raNum(r.vol), Vm=V/CFT, o=[];
+    o.push([RA.set.company+" — Concrete Mix Design – Lab Rate Analysis"]);
+    o.push(["Record",r.id],["Grade",glabel(gkey(r))],["Laboratory",r.lab],["Mix design reference",r.ref],["Date",r.date?dmy(r.date):"Needs Verification"],
+      ["Method",r.method],["Basis",r.basis],["Project",r.project||""],["Source photos",(r.photos||[]).join(", ")],["Selected volume",n3(V)+" Cft ("+n3(Vm)+" m³)"],[]);
+    o.push(["S.No","Material","Lab qty (kg/m³)","Practical qty / m³","Unit","Rate DB line","Qty / m³ (rate unit)","Rate unit","Rate (PKR)","Status","Amount / m³ (PKR)","Qty / Cft","Amount / Cft (PKR)","Qty for volume","Cost for volume (PKR)","Rate source / remarks","Flags"]);
+    c.rows.forEach(function(x,i){
+      o.push([i+1,x.m.n,x.m.kg,+x.p.q.toFixed(3),x.p.u,x.code||"",x.cv?+x.cv.q.toFixed(3):"",x.l?x.l.unit:"",x.l?x.rate:"",x.l?x.l.vs:"",+x.amt.toFixed(2),
+        x.cv?+(x.cv.q/CFT).toFixed(3):"",+(x.amt/CFT).toFixed(2),+(x.p.q*Vm).toFixed(3)+" "+x.p.u,+(x.amt*Vm).toFixed(2),x.l?x.l.src+(x.l.date?" (eff. "+x.l.date+")":""):"",x.f.join("; ")]);
+    });
+    o.push([]);
+    o.push(["Other cost components","Description","Basis","Rate DB line","Qty per Cft","Per m³ (PKR)","Per Cft (PKR)","For volume (PKR)"]);
+    (r.comps||[]).forEach(function(k){ var a=compAmt(k); o.push([k.cat,k.desc,k.basis==="line"?"Rate DB line":k.basis==="cft"?"PKR per Cft":"PKR per m³",k.code||"",k.basis==="line"?k.qty:"",+a.toFixed(2),+(a/CFT).toFixed(2),+(a*Vm).toFixed(2)]); });
+    o.push([]);
+    o.push(["Build-up","","Per m³ (PKR)","Per Cft (PKR)","For volume (PKR)"]);
+    [["A. Materials",c.A],["B. Wastage @ "+raNum(r.wast)+"%",c.B]].concat(CATS.filter(function(k){ return c.cat[k]!==undefined; }).map(function(k){ return [k,c.cat[k]]; }))
+      .concat([["Subtotal",c.sub],["Overheads @ "+raNum(r.oh)+"%",c.G],["Profit @ "+raNum(r.prof)+"%",c.H],["TOTAL RATE",c.T]])
+      .forEach(function(b){ o.push([b[0],"",+b[1].toFixed(2),+(b[1]/CFT).toFixed(2),+(b[1]*Vm).toFixed(2)]); });
+    if(r.verify&&r.verify.length){ o.push([]); o.push(["Needs Verification"]); r.verify.forEach(function(v){ o.push(["",v]); }); }
+    if(r.info&&r.info.length){ o.push([]); o.push(["Laboratory data as printed"]); r.info.forEach(function(v){ o.push(["",v]); }); }
+    return o;
+  }
+  function xlsx(r){
+    var rows=sheetRows(r), name="Lab_Mix_Rate_Analysis_"+r.id+"_"+raToday();
+    if(typeof zdLoadExcel!=="function") return csvOut(name+".csv",rows);
+    zdLoadExcel().then(function(X){
+      var wb=new X.Workbook(), ws=wb.addWorksheet(r.id.slice(0,31));
+      rows.forEach(function(x){ ws.addRow(x); });
+      ws.getRow(1).font={bold:true,size:13};
+      rows.forEach(function(x,i){ if(/^(S\.No|Other cost components|Build-up|Needs Verification|Laboratory data)/.test(String(x[0]))||x[0]==="TOTAL RATE"){
+        var rw=ws.getRow(i+1); rw.font={bold:true}; rw.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFE4E9F2"}}; } });
+      ws.columns.forEach(function(c,i){ c.width=i===1?42:i===15?60:15; });
+      return wb.xlsx.writeBuffer();
+    }).then(function(b){ zdSaveBlob(new Blob([b],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}),name+".xlsx"); })
+      .catch(function(){ csvOut(name+".csv",rows); });
+  }
+  function printRec(r){
+    var c=calc(r), V=raNum(r.vol), Vm=V/CFT, P=RA.proj||{};
+    var st='body{font-family:Segoe UI,Arial,sans-serif;font-size:11px;color:#1e2b3a;margin:18px}h1{font-size:16px;margin:0}h2{font-size:13px;margin:14px 0 5px;color:#17375e}'+
+      'table{width:100%;border-collapse:collapse;margin-top:4px}th,td{border:1px solid #9aa9bb;padding:4px 6px;vertical-align:top}th{background:#e4e9f2;font-size:10px;text-align:left}'+
+      '.n{text-align:right;white-space:nowrap}.t td{font-weight:700;background:#f1f4f9}.m{color:#555;font-size:10.5px}.w{border:1px solid #d99;background:#fdf0f0;padding:6px 9px;margin-top:8px}'+
+      '.sig{display:flex;justify-content:space-between;margin-top:40px}.sig div{border-top:1px solid #333;width:28%;text-align:center;padding-top:4px}@media print{button{display:none}}';
+    var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+esc(r.id)+' — Lab Mix Rate Analysis</title><style>'+st+'</style></head><body>'+
+      '<h1>'+esc(RA.set.company)+' — Concrete Mix Design – Lab Rate Analysis</h1>'+
+      '<div class="m">Project: '+esc(P.name||"—")+' · Location: '+esc(P.loc||"—")+' · Prepared by '+esc(RA.set.prepared||"")+' · Printed '+dmy(raToday())+'</div>'+
+      '<table style="margin-top:10px"><tr><th>Record</th><td>'+esc(r.id)+'</td><th>Grade</th><td>'+esc(glabel(gkey(r)))+'</td></tr>'+
+      '<tr><th>Laboratory</th><td colspan="3">'+esc(r.lab)+'</td></tr><tr><th>Mix design ref.</th><td colspan="3">'+esc(r.ref)+'</td></tr>'+
+      '<tr><th>Date</th><td>'+(r.date?dmy(r.date):"Needs Verification")+'</td><th>Method / basis</th><td>'+esc((r.method||"—")+" · "+(r.basis||""))+'</td></tr>'+
+      '<tr><th>Volume</th><td>'+n3(V)+' Cft ('+n3(Vm)+' m³)</td><th>Densities</th><td>sand '+r.dens.sand+' kg/cft · crush '+r.dens.agg+' kg/cft</td></tr></table>'+
+      '<h2>Material consumption and cost</h2><table><tr><th>#</th><th>Material</th><th class="n">Lab kg/m³</th><th class="n">Qty / m³</th><th>Rate line</th><th class="n">Rate (PKR)</th>'+
+      '<th class="n">Amount / m³</th><th class="n">Qty / Cft</th><th class="n">Amount / Cft</th><th class="n">Qty for volume</th><th class="n">Cost for volume</th></tr>'+
+      c.rows.map(function(x,i){ return '<tr><td>'+(i+1)+'</td><td>'+esc(x.m.n)+(x.f.length?'<div class="m" style="color:#9b2222">'+x.f.map(esc).join("; ")+'</div>':"")+'</td><td class="n">'+raN(x.m.kg,2)+'</td>'+
+        '<td class="n">'+n3(x.p.q)+' '+x.p.u+'</td><td>'+esc(x.code||"—")+(x.l?'<div class="m">'+esc(x.l.src||"")+'</div>':"")+'</td><td class="n">'+(x.l?pk(x.rate)+" / "+esc(x.l.unit):"—")+'</td>'+
+        '<td class="n">'+pk(x.amt)+'</td><td class="n">'+n3(x.p.q/CFT)+' '+x.p.u+'</td><td class="n">'+pk(x.amt/CFT)+'</td><td class="n">'+n3(x.p.q*Vm)+' '+x.p.u+'</td><td class="n">'+pk(x.amt*Vm)+'</td></tr>'; }).join("")+
+      '<tr class="t"><td></td><td>A. Materials</td><td colspan="4"></td><td class="n">'+pk(c.A)+'</td><td></td><td class="n">'+pk(c.A/CFT)+'</td><td></td><td class="n">'+pk(c.A*Vm)+'</td></tr></table>'+
+      '<h2>Rate build-up</h2><table><tr><th>Head</th><th class="n">PKR per m³</th><th class="n">PKR per Cft</th><th class="n">PKR for volume</th></tr>'+
+      [["A. Materials",c.A],["B. Wastage @ "+raNum(r.wast)+"%",c.B]].concat((r.comps||[]).filter(function(k){ return compAmt(k); }).map(function(k){ return [k.cat+(k.desc?" — "+k.desc:"")+(k.basis==="line"?" ("+k.code+" × "+k.qty+"/cft)":""),compAmt(k)]; }))
+        .concat([["Subtotal",c.sub,1],["Overheads @ "+raNum(r.oh)+"%",c.G],["Profit @ "+raNum(r.prof)+"%",c.H],["TOTAL RATE",c.T,1]])
+        .map(function(b){ return '<tr'+(b[2]?' class="t"':"")+'><td>'+esc(b[0])+'</td><td class="n">'+pk(b[1])+'</td><td class="n">'+pk(b[1]/CFT)+'</td><td class="n">'+pk(b[1]*Vm)+'</td></tr>'; }).join("")+'</table>'+
+      (r.verify&&r.verify.length?'<div class="w"><b>Needs Verification</b><ul>'+r.verify.map(function(v){ return "<li>"+esc(v)+"</li>"; }).join("")+'</ul></div>':"")+
+      '<div class="sig"><div>Prepared by (QS)</div><div>Checked by</div><div>Approved by</div></div>'+
+      '<p class="m">© SAJ QSCOST — built by Sajjad. Rates from the Rate Database with their sources; check before use in contract documents.</p>'+
+      '<script>window.onload=function(){setTimeout(function(){window.print()},200)}<\/script></body></html>';
+    var w=window.open("","_blank");
+    if(!w){ alert("Allow pop-ups to print, or use the Excel / CSV export."); return; }
+    w.document.write(h); w.document.close();
+  }
+  function registerCsv(){
+    var o=[["Record ID","Status","Grade","PSI","Laboratory","Project","Mix design reference","Date","Method","Source photos","Material","Type","Lab qty (kg/m³)","Practical qty / m³","Unit","Rate DB line","Rate (PKR)","Amount / m³ (PKR)","Amount / Cft (PKR)","Record total / m³ (PKR)","Record total / Cft (PKR)","Needs verification"]];
+    RA.labMix.recs.forEach(function(r){ var c=calc(r);
+      c.rows.forEach(function(x){ o.push([r.id,r.status,glabel(gkey(r)),r.psi==null?"":r.psi,r.lab,r.project||"",r.ref,r.date,r.method,(r.photos||[]).join(" "),x.m.n,TYPES[x.m.t],x.m.kg,
+        +x.p.q.toFixed(3),x.p.u,x.code,x.l?x.rate:"",+x.amt.toFixed(2),+(x.amt/CFT).toFixed(2),+c.T.toFixed(2),+c.cft.toFixed(2),(r.verify||[]).concat(x.f).join("; ")]); }); });
+    csvOut("Lab_Mix_Design_Register_"+raToday()+".csv",o);
+  }
+  function photos(){
+    var S=seed(), L=RA.labMix;
+    raModal("Photo register — "+S.photos.length+" photos",'<p style="font-size:12px">'+esc(S.source)+'.</p><div class="rascroll" style="max-height:55vh"><table class="ratbl"><thead><tr><th>Photo</th><th>Content</th><th>Records</th></tr></thead><tbody>'+
+      S.photos.map(function(p){ return '<tr><td>'+p[0]+'</td><td>'+esc(p[1])+'</td><td>'+(p[2].length?p[2].map(function(i){
+        var ok=L.recs.some(function(r){ return r.id===i; }); return '<code>'+esc(i)+'</code>'+(ok?"":' <span class="vstat A">deleted</span>'); }).join(" "):'<i>duplicate — no new record</i>')+'</td></tr>'; }).join("")+
+      '</tbody></table></div>', raModalClose, "Close");
+  }
+
+  /* ---------- wiring ---------- */
+  function init(){
+    var V=el("rav-lmx"); if(!V) return;
+    ["lmxQ"].forEach(function(id){ el(id).addEventListener("input", render); });
+    ["lmxPsi","lmxLab","lmxDate","lmxStat"].forEach(function(id){ el(id).addEventListener("change", function(){ CUR=null; render(); }); });
+    el("lmxPick1").addEventListener("change", function(){ el("lmxPsi").value=el("lmxPick1").value; CUR=null; render(); });
+    el("lmxPick2").addEventListener("change", function(){ CUR=el("lmxPick2").value; render(); });
+    el("lmxClear").addEventListener("click", function(){ ["lmxQ","lmxPsi","lmxLab","lmxDate"].forEach(function(id){ el(id).value=""; }); el("lmxStat").value="active"; render(); });
+    el("lmxNew").addEventListener("click", function(){ if(ensure()) newRec(); });
+    el("lmxCsvAll").addEventListener("click", function(){ if(ensure()) registerCsv(); });
+    el("lmxPhotos").addEventListener("click", function(){ if(ensure()) photos(); });
+    V.addEventListener("click", function(e){
+      var t=e.target.closest("[data-lmx],[data-lmx-pick],[data-lrate],[data-llink],[data-lmdel],[data-lcdel],#lmxRestore"); if(!t||!ensure()) return;
+      if(t.id==="lmxRestore"){ RA.labMix.del=[]; raPersist(); return render(); }
+      if(t.dataset.lmxPick){ CUR=t.dataset.lmxPick; return render(); }
+      if(t.dataset.lrate){ e.preventDefault(); return editRate(t.dataset.lrate); }
+      if(t.dataset.llink){ e.preventDefault(); var s=V.querySelector('select[data-lm="'+t.dataset.llink+'"]'); if(s) s.focus(); return; }
+      var r=rec();
+      if(t.dataset.lmdel){ r.mats.splice(+t.dataset.lmdel,1); return save(r,true); }
+      if(t.dataset.lcdel){ r.comps.splice(+t.dataset.lcdel,1); return save(r,false); }
+      doAct(t.dataset.lmx);
+    });
+    V.addEventListener("change", function(e){
+      var t=e.target, r=rec(); if(!r||!ensure()) return;
+      if(t.dataset.lf){ var k=t.dataset.lf, v=t.value;
+        if(k==="dsand") r.dens.sand=raNum(v)||r.dens.sand; else if(k==="dagg") r.dens.agg=raNum(v)||r.dens.agg;
+        else if(k==="water") r.water=v==="1"; else if(k==="yld") { r.yld=raNum(v)||1; r.ed=true; } else r[k]=raNum(v);
+        return save(r,false); }
+      if(t.dataset.lm!==undefined&&t.dataset.k){ var m=r.mats[+t.dataset.lm]; m[t.dataset.k]=t.dataset.k==="kg"?raNum(t.value):t.value; return save(r,true); }
+      if(t.dataset.lc!==undefined&&t.dataset.k){ var c=r.comps[+t.dataset.lc], kk=t.dataset.k; c[kk]=(kk==="amt"||kk==="qty")?raNum(t.value):t.value; return save(r,false); }
+    });
+    var b=document.querySelector('#raSub button[data-rv="lmx"]');
+    if(b) b.addEventListener("click", function(){ setTimeout(render,0); });
+  }
+  window.lmxRender=render;
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
 </script>

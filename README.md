@@ -240,6 +240,45 @@ Rs 2–1,758 per metric ton from a 23-Sep-2026 web-search summary (no seller, no
 date). It is probably low, since fly-ash bricks sell at Rs 13–18 each. Replace it
 with a dated quotation before pricing a live BOQ.
 
+## Concrete Mix Design – Lab Rate Analysis (Rate Analysis)
+
+Rate Analysis → **Concrete Mix Design – Lab Rate Analysis** keeps every laboratory mix design as its
+own record, priced from the Rate Database. Seeded on 25-Sep-2026 from **15 photos → 21 records**
+(photo 8 is a duplicate of photo 7):
+
+| Source (as on the photos) | Records | Grades |
+|---|---|---|
+| Excel ACI-211.1 workbook, lab not shown (photos 1–6) | `LMX-XL-01`…`06` | psi not shown (cement 150–530 kg/m³) |
+| J7 Group QA/QC, Batching Plant Multi Garden B-17 (photos 7–8) | `LMX-J7-<psi>` | 3000, 4000, 4500, 5000, 5500 |
+| ACI-211.1 5000 psi sheet, mixed 05-04-26, lab not shown (photo 9) | `LMX-ACI5K-01` | 5000 |
+| Ready-mix plant sheets, DHA Multan, BS 882 grading (photos 10–14) | `LMX-MUL-<psi>`, `LMX-MUL-136` | 1000, 4000, 4500, 6000, 1:3:6 |
+| "Concrete Mix Design ACI-211" batch-weight sheet (photo 15) | `LMX-ACI-<psi>` | 1500, 4000, 4500, 6000 |
+
+Designs of the same psi from different labs stay separate. Figures are typed as printed (the
+Excel sheets' corrected weights are used; the uncorrected weights, volumes and slumps are kept in
+each record's notes). Anything a sheet does not show (lab name, psi, date, cut-off mix codes,
+unnamed admixtures, sand / crush sources) is listed under **Needs Verification** on the record.
+
+Each record: lab kg/m³ → bags, Cft (sand 46.65 / crush 41.00 kg/cft, the Al Rafiq sheet
+densities the Item Library design mixes use; editable per record), litres; linked Rate Database
+line, qty in its unit, rate, amount per m³ and per Cft, and totals for a chosen volume in Cft.
+Clicking a rate updates the shared Rate Database line (source and date required). Labour,
+machinery, batching, mixing, transport, pumping, wastage, overheads and profit are separate
+editable components at 0 until entered. Records can be added, edited, duplicated, archived and
+deleted (deleted seed records are not re-added; *Restore* brings them back); print / PDF, Excel
+and CSV per record, plus a register CSV. Records are stored in the rate library (`RA.labMix`,
+browser storage key `SAJ_QSCOST_v1`) and travel with Backup JSON.
+
+The seed is the `<script type="application/json" id="raLabMixData">` block. To change a
+transcription, edit `tools/lab_mix_data.py`, then:
+
+```sh
+tools/lab_mix_data.py zameen-developments/index.html
+python3 -m unittest tools/test_lab_mix_data.py
+```
+
+A new seed revision refreshes only records nobody has edited.
+
 ## MEP rate analyses (Rate Analysis)
 
 Rate Analysis → Item Library carries **423 MEP items** (Electrical 129, HVAC 130,
@@ -455,6 +494,8 @@ tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Ra
 tools/test_mrs_register.py          tests for the MRS loader
 tools/mep_rates.py                  build the MEP rate analyses from the MAK final bill + GRN register
 tools/test_mep_rates.py             tests for the MEP rate analyses
+tools/lab_mix_data.py               lab concrete mix designs for the Lab Rate Analysis tab
+tools/test_lab_mix_data.py          tests for the lab mix-design transcription
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
 tools/calc_data.py                  build the Calculator tab's section / pipe / material data block
