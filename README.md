@@ -302,6 +302,86 @@ MAK_BILL="MAK Final Bill Checking.xlsx" python3 -m unittest tools/test_mep_rates
 The build stops if any rows grouped into one item carry different rates. The bill
 workbook is not committed.
 
+## Calculator tab
+
+Sidebar → **Calculator** (after Admin) is a QS / civil / structural / MEP calculator
+module, added 25-Sep-2026. Every calculation shows **Input → Formula → Working
+(substituted values) → Result → Unit**, multi-unit results (kg / ton / lb, kg/m / kg/ft,
+SFT / m², CFT / m³, litres / gallons) and a source panel naming the standard, whether the
+value is a **published table value** or **calculated**, and the density used
+(**Standard density** or **User-defined density** — never changed silently).
+
+- **Steel:** rebar (d²/162, exact, BS 4449 table, ASTM A615 bar No. / sutar; weight ↔
+  length), plate / sheet, flat, round, square / rectangular / hex bar, MS / GI pipe, SHS /
+  RHS / CHS (sharp, EN 10210 or EN 10219 corner radii), any standard section, welded plate
+  girder, angle, channel, I / H, tee, C / Z purlin, and a general any-shape calculator.
+- **Section database:** 3,652 sections and pipes in 70 series — IS 808:1989 (MB/ISMB,
+  LB, JB, WB, HB, SC, NPB, WPB, PBP, MC/ISMC, MPC, LC, JC, ISA equal / unequal), IS 4923
+  SHS / RHS, IS 1161 CHS, BS 4-1 UB / UC, EN IPE / HEA / HEB / HEM, UPN, UPE, IPN, HD, HP,
+  EN 10056 angles, EN 10210 SHS / RHS / CHS, AISC v16 W / S / M / HP / C / MC / L / WT /
+  HSS / Pipe, ASME B36.10M / B36.19M schedules, EN 10255 (BS 1387) medium / heavy,
+  BS 1387 light, ASTM D1785 PVC. Search → select → shape, dimensions, kg/m, kg/ft,
+  properties, source.
+- **Civil & finishes:** concrete (PCC / RCC with deductions, nominal mix, steel kg/m³),
+  material mix, excavation (side slopes, prismoidal), brickwork, blockwork, stone
+  masonry, plaster, screed, formwork, tile / marble, paint / putty, waterproofing,
+  skirting, boards, grout / adhesive, sealant. Dimensions are shown as
+  `Nos × L × W × H` strings and openings as separate negative rows.
+- **MEP:** pipe volume / weight (any material, schedules), tank volume (incl. part-filled
+  horizontal cylinder), flow ↔ velocity, length takeoff, insulation, electrical load
+  (1φ / 3φ), Ohm's law, cable conductor weight, voltage-drop estimate (IEC 60228 DC
+  resistance), AWG ↔ mm², cable tray, HVAC duct area / weight / air volume.
+- **Item-wise calculators (BOQ items):** 81 ready-made items in 12 trades (earthwork,
+  grey-structure concrete, masonry, reinforcement, plaster & mortar, flooring, painting,
+  waterproofing, ceiling, plumbing, electrical, HVAC) — e.g. PCC 1:4:8 lean, DPC 1½",
+  RCC slab / beam / column / footing / lintel, 9" brickwork 1:6, 6" blockwork, brick
+  soling, internal / external / ceiling plaster, 600×600 tiles, emulsion system, rebar
+  by sutar, binding wire. Each is a preset of a calculator above; every value stays editable.
+- **More grey-structure / finishes tools:** material weight CFT ↔ kg (RCC, PCC, brick
+  masonry, mortar, cement, sand, steel …), filling / backfilling (compaction allowance,
+  truck trips), bar bending schedule (weight per diameter), steel from concrete volume
+  (kg/CFT, kg/m³, %), binding wire (ties in slab mesh or beams / columns × wire length per
+  tie × SWG weight, or kg per ton), brick soling / on-edge, staircase concrete,
+  false-ceiling grid, pipe slope / fall, **coat-wise painting system** (primer, putty and
+  paint coats each with their own TDS coverage), **tile bond (tile adhesive)** — kg and bags
+  from the bag / TDS consumption, bed thickness or notched-trowel size, with back-buttering —
+  and a coverage-material tool (SBR bond coat,
+  sealer, epoxy, anti-termite, curing compound).
+- **Libraries:** two-way unit converter (NIST SP 811 exact factors, incl. RFT / SFT / CFT,
+  Marla / Kanal both conventions, brass, maund), conversion library, formula library,
+  constants / unit weights (materials with status and source; BS 4449, ASTM A615,
+  IEC 60228, gauge and AWG tables), density settings, and **custom calculations** (your
+  own named formula, inputs, units and optional density).
+- Search answers directly: `10 cft to m3`, `5 marla in sft` (both conventions),
+  `100 cft rcc to kg`, `500 kg cement in cft`. It knows site terms (sariya, eent, chunai,
+  bajri, ret, khudai, bharai, rang, taar, masala …) and tolerates typos.
+- Search box (in the tab and in the dashboard-wide search) understands `20mm rebar`,
+  `#5`, `ISMB 300`, `MS pipe 4 inch`, `10mm plate`, `25x25 angle`, `RHS 100x50x5`,
+  `W12x26`, `brickwork`, `paint`, `cable`. Favourites (★), recent calculations (reopen /
+  copy / delete / clear), copy, print / PDF, CSV and Excel export. Favourites, history,
+  last inputs, density overrides and custom calculators live in the viewer's browser only.
+
+**Data rules.** Nothing standardised is typed into the UI code. Section and pipe tables
+come from `tools/calc_data.py`, which reads published machine-readable sources
+(eurocodepy, AISC Shapes Database v16 via steelpy, Osdag's IS 808 database, fluids'
+ASME tables, structuralcodes EN dimensions) and writes the
+`<script type="application/json" id="calcData">` block. Where only dimensions are
+published (UPN, UPE, IPN, HD, HP, EN angles) the mass is computed from the exact profile
+(fillets, toe radii, taper) at 7850 kg/m³ and labelled *calculated* — checked against
+catalogue values (UPN 100 13.47 vs 13.5 cm², IPN 300 69.00 vs 69.0 cm²). Values that
+could not be verified are not invented: plastic pipe densities, paint coverage, grout
+density, membrane consumption, putty / primer / paint coverage per coat, binding-wire
+length per tie, soil / aggregate density and overall cable weight must be entered from the product
+data sheet, and the calculator refuses to calculate until they are. QS conventions (dry-
+volume factors 1.54 / 1.27, joint thickness, wastage) are editable and badged
+*convention*. To rebuild the data:
+
+```sh
+pip install eurocodepy steelpy structuralcodes fluids shapely numpy
+git clone --depth 1 https://github.com/osdag-admin/Osdag.git /tmp/osdag
+tools/calc_data.py --osdag /tmp/osdag zameen-developments/index.html
+```
+
 ## Netlify
 
 Netlify is connected to this repo and redeploys on every push to `main`, in
@@ -375,6 +455,7 @@ tools/mep_rates.py                  build the MEP rate analyses from the MAK fin
 tools/test_mep_rates.py             tests for the MEP rate analyses
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
+tools/calc_data.py                  build the Calculator tab's section / pipe / material data block
 .github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
 .nojekyll                           serve files as-is (no Jekyll processing)
