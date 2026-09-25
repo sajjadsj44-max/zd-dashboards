@@ -388,6 +388,21 @@ value is a **published table value** or **calculated**, and the density used
   from the bag / TDS consumption, bed thickness or notched-trowel size, with back-buttering —
   and a coverage-material tool (SBR bond coat,
   sealer, epoxy, anti-termite, curing compound).
+- **Gauge thickness:** wherever gauge is meaningful — sheet / plate (MS, GI, stainless,
+  aluminium), pipe and hollow-section walls, pipe volume / weight, C / Z purlins, cable tray,
+  HVAC duct and the any-shape steel calculator — the thickness unit dropdown offers **Gauge**
+  next to mm / inch. Pick the gauge (10–30, or manual entry) and a **gauge standard**:
+  GI / galvanized (GSG), MS / uncoated steel (Manufacturers' Standard Gauge), stainless
+  (U.S. Standard Gauge 1893), aluminium / non-ferrous (Brown & Sharpe = AWG), SWG (BS 3737)
+  or BWG (tube wall). Sheets default to the standard for the selected material; tubes
+  default to SWG. The equivalent thickness (mm and inch) is shown under the field, in a
+  *Conversion* block and as the first working step, and is used in the calculation.
+  Switching Gauge ↔ mm ↔ inch converts the value. **Gauge Reference Table** (Calculator →
+  Gauge Reference) lists every standard with mm, inch and kg/m², finds the nearest gauge for
+  a thickness, and names each source. The tables live in the `gauges` part of the
+  `calcData` block (built by `tools/calc_data.py`): MSG and GSG from the published charts,
+  stainless from the weight schedule of 15 U.S.C. §206 (oz ÷ 640 in), SWG, BWG and B&S from
+  the `fluids` package.
 - **Libraries:** two-way unit converter (NIST SP 811 exact factors, incl. RFT / SFT / CFT,
   Marla / Kanal both conventions, brass, maund), conversion library, formula library,
   constants / unit weights (materials with status and source; BS 4449, ASTM A615,

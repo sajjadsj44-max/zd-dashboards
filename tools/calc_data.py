@@ -84,6 +84,12 @@ SOURCES = {
                "url": "https://www.concast.com/c26000.php", "d": REV},
     "en10346": {"t": "EN 10346 continuously hot-dip coated steel — Z275 = 275 g/m² zinc, total both sides (minimum average)",
                 "url": "https://www.galvinfo.com/wp-content/uploads/sites/8/2017/05/GalvInfoNote_1_1.pdf", "d": REV},
+    "msg": {"t": "Manufacturers' Standard Gauge for sheet steel (MSG, uncoated carbon steel) — thickness from the U.S. Standard Gauge weight schedule at 41.82 lb/ft² per inch (e.g. 16 ga = 0.0598 in)",
+            "url": "https://www.custompartnet.com/library/sheet-metal-gauge", "d": REV},
+    "gsg": {"t": "Galvanized Sheet Gauge (GSG, hot-dip zinc-coated sheet, ASTM A653 practice) — MSG + 0.0037 in coating allowance (e.g. 16 ga = 0.0635 in)",
+            "url": "https://www.custompartnet.com/library/sheet-metal-gauge", "d": REV},
+    "ussg": {"t": "U.S. Standard Gauge for sheet and plate iron and steel, Act of 3-Mar-1893 (15 U.S.C. §206) — defined by weight in oz/ft²; thickness = oz ÷ 640 in (e.g. 16 ga = 40 oz = 1/16 in). Commonly quoted for stainless sheet",
+             "url": "https://www.law.cornell.edu/uscode/text/15/206", "d": REV},
     "a653gauge": {"t": "Galvanized sheet gauge table (ASTM A653 base steel, manufacturers' standard gauge): 16 ga 0.0635 in … 26 ga 0.0217 in",
                   "url": "https://www.custompartnet.com/library/sheet-metal-gauge", "d": REV},
     "bs4449": {"t": "BS 4449:2005+A3:2016 Table — nominal mass per metre on the basis of 0.00785 kg/mm² per metre (7850 kg/m³)",
@@ -182,6 +188,32 @@ IEC60228 = [[0.5, 36.0, None], [0.75, 24.5, None], [1, 18.1, None], [1.5, 12.1, 
             [300, 0.0601, 0.100], [400, 0.0470, 0.0778], [500, 0.0366, 0.0605], [630, 0.0283, 0.0469]]
 
 GALV_GAUGE = [[16, 0.0635], [18, 0.0516], [20, 0.0396], [22, 0.0336], [24, 0.0276], [26, 0.0217]]  # gauge, inch
+
+# Gauge-to-thickness standards, gauges 10-30, thickness in inch. One gauge number is
+# NOT the same thickness in every system, so every calculator picks a standard.
+G = list(range(10, 31))
+MSG_IN = [0.1345, 0.1196, 0.1046, 0.0897, 0.0747, 0.0673, 0.0598, 0.0538, 0.0478, 0.0418, 0.0359,
+          0.0329, 0.0299, 0.0269, 0.0239, 0.0209, 0.0179, 0.0164, 0.0149, 0.0135, 0.0120]
+GSG_IN = [0.1382, 0.1233, 0.1084, 0.0934, 0.0785, 0.0710, 0.0635, 0.0575, 0.0516, 0.0456, 0.0396,
+          0.0366, 0.0336, 0.0306, 0.0276, 0.0247, 0.0217, 0.0202, 0.0187, 0.0172, 0.0157]
+USSG_OZ = [90, 80, 70, 60, 50, 45, 40, 36, 32, 28, 24, 22, 20, 18, 16, 14, 12, 11, 10, 9, 8]  # oz/ft², 15 U.S.C. 206
+
+
+def gauges():
+    import fluids.piping as p
+    def fl(key):
+        g = p.wire_schedules[key]
+        d = {int(a): b for a, b in zip(g[0], g[1]) if a == int(a)}
+        return [d[n] for n in G]
+    std = [
+        ("galv", "GI / Galvanized sheet", "Galvanized Sheet Gauge (GSG)", "gsg", "sheet", GSG_IN),
+        ("msg", "MS / carbon steel sheet (uncoated)", "Manufacturers' Standard Gauge (MSG)", "msg", "sheet", MSG_IN),
+        ("ssg", "Stainless steel sheet", "U.S. Standard Gauge 1893 (oz ÷ 640)", "ussg", "sheet", [round(o / 640, 7) for o in USSG_OZ]),
+        ("bs", "Aluminium / copper / brass sheet", "Brown & Sharpe = AWG (ASTM B258)", "b258", "sheet", fl("AWG")),
+        ("swg", "SWG — Imperial Standard Wire Gauge", "SWG, BS 3737 (UK / Pakistan sheets, tubes, wire)", "bs3737", "tube", fl("BSWG")),
+        ("bwg", "BWG — Birmingham Wire Gauge (tube wall)", "BWG / Stubs Iron Wire Gauge (tube wall)", "fluids", "tube", fl("BWG")),
+    ]
+    return [{"id": i, "name": n, "std": sd, "src": sr, "use": u, "rows": [[g, t] for g, t in zip(G, rows)]} for i, n, sd, sr, u, rows in std]
 
 NPS_DN = {0.125: 6, 0.25: 8, 0.375: 10, 0.5: 15, 0.75: 20, 1: 25, 1.25: 32, 1.5: 40, 2: 50, 2.5: 65, 3: 80, 3.5: 90, 4: 100, 5: 125, 6: 150}
 
@@ -494,6 +526,7 @@ def build(args):
         "gauge": GALV_GAUGE,
         "awg": awg(),
         "swg": swg(),
+        "gauges": gauges(),
         "series": series,
     }
 
