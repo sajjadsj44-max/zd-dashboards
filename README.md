@@ -343,7 +343,9 @@ value is a **published table value** or **calculated**, and the density used
   (kg/CFT, kg/m³, %), binding wire (ties in slab mesh or beams / columns × wire length per
   tie × SWG weight, or kg per ton), brick soling / on-edge, staircase concrete,
   false-ceiling grid, pipe slope / fall, **coat-wise painting system** (primer, putty and
-  paint coats each with their own TDS coverage) and a coverage-material tool (bond coat,
+  paint coats each with their own TDS coverage), **tile bond (tile adhesive)** — kg and bags
+  from the bag / TDS consumption, bed thickness or notched-trowel size, with back-buttering —
+  and a coverage-material tool (SBR bond coat,
   sealer, epoxy, anti-termite, curing compound).
 - **Libraries:** two-way unit converter (NIST SP 811 exact factors, incl. RFT / SFT / CFT,
   Marla / Kanal both conventions, brass, maund), conversion library, formula library,

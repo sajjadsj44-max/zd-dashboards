@@ -4173,6 +4173,32 @@ def({id:'covmat',cat:'fin',name:'Coverage Material (bond coat, sealer, epoxy, co
     if(v.qu==='litre') R.res('Quantity',qw*1e-3,'vol',{main:true,units:['litre','US gallon']}); else R.res('Quantity',qw,'mass',{main:true,units:['kg']});
     if(v.pack>0) R.res('Packs',Math.ceil(qw/v.pack-1e-9),'count',{u:'× '+nf(v.pack,2)+' '+v.qu}); R.res('Area',m2,'area'); R.sum=v.ty+' '+nf(A,1)+' SFT → '+nf(qw,2)+' '+v.qu; R.shape=areaShape(v); }});
 
+def({id:'tilebond',cat:'fin',name:'Tile Bond (Tile Adhesive)',sub:'Floor / wall tile adhesive — kg and bags by TDS consumption, bed thickness or notched-trowel size',ic:'tile',
+  kw:'tile bond tilebond tile adhesive tile fixing cement tile glue thinset bond bags kg per sft notched trowel back buttering floor tiles wall tiles marble fixing',
+  fl:['Consumption: Q = A × rate','Bed thickness: Q = A × t(mm) × kg/m² per mm','Square-notch trowel: t ≈ notch depth / 2','Back-buttering: Q × (1 + b%)','Bags = Q × (1 + w%) / bag mass'],
+  inputs:areaInputs(12,10).concat([Sel('meth','Method',[['cons','Consumption from bag / TDS'],['bed','Bed thickness × kg/m² per mm'],['trowel','Notched trowel size × kg/m² per mm']],'cons'),
+    Num('rate','Consumption (from bag / TDS)',null,{show:function(v){return v.meth==='cons';},hint:'Printed on the bag or data sheet for your tile size'}),
+    Sel('ru','Consumption unit',[['kgm2','kg per m²'],['kgsft','kg per SFT']],'kgm2',{show:function(v){return v.meth==='cons';}}),
+    Lin('bt','Bed thickness (after bedding)','mm',3,'mm',{units:['mm','in'],show:function(v){return v.meth==='bed';}}),
+    Lin('nd','Trowel notch depth (square notch)','mm',6,'mm',{units:['mm','in'],opts:[4,6,8,10,12],show:function(v){return v.meth==='trowel';}}),
+    Num('pmm','Powder consumption, kg per m² per mm (TDS)',null,{show:function(v){return v.meth!=='cons';},hint:'From the product data sheet'}),
+    Num('bb','Back-buttering extra % (large-format / wall tiles, optional)',0,{allow0:true,opt:true,conv:true}),
+    Num('wast','Wastage %',0,{allow0:true,conv:true}),{k:'bag',l:'Bag mass (supplier, optional)',dim:'mass',u:'kg',def:null,base:'kg',opt:true,units:['kg']}]),
+  calc:function(v,R){ var A=areaCalc(v,R); if(A==null) return; var m2=sft2m2(A), q;
+    R.meta({std:'Engineering geometry; consumption / kg per mm from product TDS (user)',src:['geom','user'],kind:'Calculated'});
+    R.step('Area in m²','A × 0.09290304',nw(A)+' × 0.09290304',m2,'m²');
+    if(v.meth==='cons'){ if(!(v.rate>0)) return R.err('Enter the consumption printed on the bag / TDS.'); if(v.ru==='kgm2'){ q=m2*v.rate; R.step('Adhesive','A(m²) × kg/m²',nw(m2)+' × '+nw(v.rate),q,'kg'); } else { q=A*v.rate; R.step('Adhesive','A(SFT) × kg/SFT',nw(A)+' × '+nw(v.rate),q,'kg'); } }
+    else { if(!(v.pmm>0)) return R.err('Enter kg per m² per mm from the product TDS.'); var t=v.meth==='bed'?v.bt:v.nd/2;
+      if(v.meth==='trowel') R.step('Average bed thickness','t ≈ notch depth / 2 (square notch, ridges fill half)',nw(v.nd)+' / 2',t,'mm');
+      if(!(t>0)) return R.err('Thickness required'); q=m2*t*v.pmm; R.step('Adhesive','A(m²) × t × kg/m²/mm',nw(m2)+' × '+nw(t)+' × '+nw(v.pmm),q,'kg'); }
+    if(v.bb>0){ var qb=q*(1+v.bb/100); R.step('Incl. back-buttering','Q × (1 + b%)',nw(q)+' × '+nw(1+v.bb/100),qb,'kg'); q=qb; }
+    var qw=q*(1+(v.wast||0)/100); if(v.wast) R.step('Incl. wastage','Q × (1 + w%)',nw(q)+' × '+nw(1+v.wast/100),qw,'kg');
+    R.res('Tile bond (adhesive)',qw,'mass',{main:true,units:['kg','ton (metric, 1000 kg)']});
+    if(v.bag>0){ var nb=qw/v.bag; R.step('Bags','Q / bag mass',nw(qw)+' / '+nw(v.bag),nb,'bags'); R.res('Bags',Math.ceil(nb-1e-9),'count',{u:'bags × '+nf(v.bag,1)+' kg',note:nf(nb,2)+' exact'}); }
+    else R.note('Enter the bag mass to get the number of bags.');
+    R.res('Consumption per SFT',qw/A,'count',{u:'kg/SFT'}); R.res('Consumption per m²',qw/m2,'count',{u:'kg/m²'}); R.res('Tiled area',m2,'area');
+    R.sum='Tile bond '+nf(A,1)+' SFT → '+nf(qw,2)+' kg'; R.shape={sh:'tile',p:{}}; }});
+
 /* ======================= ITEM-WISE CATALOGUE (BOQ items) — presets of the calculators above ======================= */
 CATS.splice(1,0,{id:'items',name:'Item-wise Calculators (BOQ items)',ic:'☰',d:'Ready-made grey structure, finishes and MEP items — excavation, PCC, RCC, brickwork, plaster, tiles, paint, steel, binding wire…'});
 var TRADES=['Earthwork','Concrete (grey structure)','Masonry','Reinforcement','Plaster & mortar','Flooring & tiles','Painting & coatings','Waterproofing','Ceiling & partitions','Plumbing','Electrical','HVAC'];
@@ -4236,7 +4262,10 @@ item('weather','Weather-shield exterior: primer + 2 coats','Painting & coatings'
 item('enamel','Enamel paint: primer + 2 coats','Painting & coatings','coatsys',{am:'dir',pr:1,pu:0,pa:2},null,'rang enamel wood steel');
 item('putty','Wall putty (coat-wise)','Painting & coatings','coatsys',{am:'wall',pr:0,pu:2,pa:0},null,'putty');
 item('primer','Primer (coat-wise)','Painting & coatings','coatsys',{am:'wall',pr:1,pu:0,pa:0},null,'primer');
-item('bond','Bonding agent / SBR bond coat','Painting & coatings','covmat',{ty:'bond'},null,'bond');
+item('bond','Bonding agent / SBR bond coat (plaster / screed)','Painting & coatings','covmat',{ty:'bond'},null,'sbr slurry');
+item('tb-floor','Tile bond — floor tiles','Flooring & tiles','tilebond',{am:'lw'},null,'tile adhesive');
+item('tb-wall','Tile bond — wall tiles','Flooring & tiles','tilebond',{am:'wall',bb:0},null,'tile adhesive wall');
+item('tb-marble','Tile bond — marble / large-format (trowel)','Flooring & tiles','tilebond',{meth:'trowel',nd:10},null,'tile adhesive marble granite');
 item('epoxy','Epoxy floor coating','Painting & coatings','covmat',{ty:'epoxy',coats:2},null,'epoxy');
 item('termite','Anti-termite treatment','Earthwork','covmat',{ty:'termite'},null,'termite');
 item('wp-roof','Roof membrane waterproofing','Waterproofing','wp',{type:'mem'},null,'roof');
@@ -4731,7 +4760,7 @@ function ceValidate(e){
 }
 
 /* ---------------- search (tab search + global dashboard search) */
-var SYN={sariya:'rebar',saria:'rebar',sarya:'rebar',sariye:'rebar',sutar:'rebar',soot:'rebar',tmt:'rebar',eent:'brick',int:'brick',eint:'brick',bricks:'brick',chunai:'brickwork',bajri:'aggregate',crush:'aggregate',ret:'sand',rait:'sand',reti:'sand',bori:'cement',palaster:'plaster',plastr:'plaster',rang:'paint',painting:'paint',khudai:'excavation',digging:'excavation',bharai:'filling',bharti:'filling',backfill:'backfilling',chhat:'slab',chat:'slab',farsh:'floor',flooring:'floor',taar:'wire',tar:'wire',shuttering:'formwork',centering:'formwork',sidhi:'stair',stairs:'stair',tanki:'tank',masala:'mortar',tiles:'tile',pathar:'stone',marbel:'marble',lohe:'steel',ms:'steel',bijli:'electrical',ac:'hvac',blocks:'block',pipes:'pipe',cables:'cable',ducts:'duct',beams:'beam',columns:'column',walls:'wall',mitti:'earth',soil:'earth',lintels:'lintel',chajja:'lintel',primer:'primer',putty:'putty',wt:'weight',weights:'weight',vol:'volume',qty:'quantity'};
+var SYN={sariya:'rebar',saria:'rebar',sarya:'rebar',sariye:'rebar',sutar:'rebar',soot:'rebar',tmt:'rebar',eent:'brick',int:'brick',eint:'brick',bricks:'brick',chunai:'brickwork',bajri:'aggregate',crush:'aggregate',ret:'sand',rait:'sand',reti:'sand',bori:'cement',palaster:'plaster',plastr:'plaster',rang:'paint',painting:'paint',khudai:'excavation',digging:'excavation',bharai:'filling',bharti:'filling',backfill:'backfilling',chhat:'slab',chat:'slab',farsh:'floor',flooring:'floor',taar:'wire',tar:'wire',shuttering:'formwork',centering:'formwork',sidhi:'stair',stairs:'stair',tanki:'tank',masala:'mortar',tiles:'tile',pathar:'stone',marbel:'marble',lohe:'steel',ms:'steel',bijli:'electrical',ac:'hvac',blocks:'block',pipes:'pipe',cables:'cable',ducts:'duct',beams:'beam',columns:'column',walls:'wall',mitti:'earth',soil:'earth',lintels:'lintel',chajja:'lintel',primer:'primer',putty:'putty',wt:'weight',weights:'weight',tilebond:'tile bond',bond:'tile bond',adhesive:'tile bond',thinset:'tile bond',glue:'tile bond',vol:'volume',qty:'quantity'};
 var STOP={calculator:1,calc:1,calculate:1,calculation:1,of:1,for:1,the:1,a:1,in:1,to:1,per:1,and:1,how:1,much:1,many:1,quantity:1,need:1,find:1,is:1,what:1,with:1,me:1,my:1};
 function lev1(a,b){ if(a===b) return true; var la=a.length,lb=b.length; if(Math.abs(la-lb)>1) return false; var i=0,j=0,e=0; while(i<la&&j<lb){ if(a[i]===b[j]){i++;j++;continue;} if(++e>1) return false; if(la>lb) i++; else if(lb>la) j++; else {i++;j++;} } return e+(la-i)+(lb-j)<=1; }
 function qTokens(q){ return String(q).toLowerCase().replace(/[×x](?=\d)/g,' ').split(/[^a-z0-9#.]+/).filter(function(t){ return t&&!STOP[t]&&!/^[\d.]+$/.test(t); }).map(function(t){ return SYN[t]?[t,SYN[t]]:[t]; }); }
