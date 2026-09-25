@@ -96,6 +96,8 @@ SOURCES = {
     "en10219": {"t": "EN 10219-2 cold-formed hollow sections — corner radii for calculation: ro = 2.0t, ri = 1.0t (t ≤ 6); 2.5t / 1.5t (6 < t ≤ 10); 3.0t / 2.0t (t > 10)",
                 "url": "https://standards.iteh.ai/catalog/standards/cen/073cb87d-d24a-4cde-b626-79d9b01cb537/en-10219-2-2019", "d": REV},
     "en10210": {"t": "EN 10210-2 hot-finished hollow sections — corner radii for calculation: ro = 1.5t, ri = 1.0t", "url": "https://standards.iteh.ai/", "d": REV},
+    "bs3737": {"t": "Imperial Standard Wire Gauge (SWG, BS 3737) diameters via fluids 1.3.1 BSWG table — e.g. 16 SWG 0.064 in, 18 SWG 0.048 in, 20 SWG 0.036 in",
+               "url": "https://github.com/CalebBell/fluids", "d": REV},
     "geom": {"t": "Engineering geometry (exact formula) — no empirical coefficient", "url": "", "d": REV},
     "conv": {"t": "QS practice convention — editable default, not a standard value. Confirm against the project specification.", "url": "", "d": REV},
     "user": {"t": "User-defined value", "url": "", "d": ""},
@@ -159,6 +161,8 @@ MATERIALS = [
     ["cement", "Civil", "Cement (loose bulk)", "IS 875-1", 1440, "std", "is875", "Used to convert 50 kg bags to volume: 50 / 1440 = 0.0347 m³ = 1.226 CFT per bag."],
     ["sand", "Civil", "Sand, dry", "IS 875-1", 1600, "typ", "is875", "IS 875-1 range 1540–1600 kg/m³ (dry, clean)."],
     ["water", "Civil", "Water (fresh)", "", 1000, "std", "nist811", ""],
+    ["earth", "Civil", "Earth / soil fill", "site soil", None, "nv", "user", "Data not verified — soil density varies; take from site / lab test."],
+    ["agg", "Civil", "Coarse aggregate (crush / bajri)", "loose", None, "nv", "user", "Data not verified — take loose bulk density from the supplier or a site test."],
     ["pvc", "Plastic", "uPVC", "ASTM D1784", None, "nv", "user", "Data not verified — enter density from the pipe manufacturer's TDS."],
     ["cpvc", "Plastic", "CPVC", "ASTM D1784", None, "nv", "user", "Data not verified — enter density from the manufacturer's TDS."],
     ["hdpe", "Plastic", "HDPE (PE100)", "ISO 4427", None, "nv", "user", "Data not verified — enter density from the manufacturer's TDS."],
@@ -449,6 +453,12 @@ def pipes():
     return out
 
 
+def swg():
+    import fluids.piping as p
+    g = p.wire_schedules["BSWG"]
+    return [[int(a), round(b, 4)] for a, b in zip(g[0], g[1]) if a == int(a) and 6 <= a <= 30]
+
+
 def awg():
     rows = []
     for n in list(range(-3, 41)):
@@ -483,6 +493,7 @@ def build(args):
         "iec60228": IEC60228,
         "gauge": GALV_GAUGE,
         "awg": awg(),
+        "swg": swg(),
         "series": series,
     }
 

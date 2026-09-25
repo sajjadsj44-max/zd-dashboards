@@ -331,11 +331,28 @@ value is a **published table value** or **calculated**, and the density used
   horizontal cylinder), flow ↔ velocity, length takeoff, insulation, electrical load
   (1φ / 3φ), Ohm's law, cable conductor weight, voltage-drop estimate (IEC 60228 DC
   resistance), AWG ↔ mm², cable tray, HVAC duct area / weight / air volume.
+- **Item-wise calculators (BOQ items):** 81 ready-made items in 12 trades (earthwork,
+  grey-structure concrete, masonry, reinforcement, plaster & mortar, flooring, painting,
+  waterproofing, ceiling, plumbing, electrical, HVAC) — e.g. PCC 1:4:8 lean, DPC 1½",
+  RCC slab / beam / column / footing / lintel, 9" brickwork 1:6, 6" blockwork, brick
+  soling, internal / external / ceiling plaster, 600×600 tiles, emulsion system, rebar
+  by sutar, binding wire. Each is a preset of a calculator above; every value stays editable.
+- **More grey-structure / finishes tools:** material weight CFT ↔ kg (RCC, PCC, brick
+  masonry, mortar, cement, sand, steel …), filling / backfilling (compaction allowance,
+  truck trips), bar bending schedule (weight per diameter), steel from concrete volume
+  (kg/CFT, kg/m³, %), binding wire (ties in slab mesh or beams / columns × wire length per
+  tie × SWG weight, or kg per ton), brick soling / on-edge, staircase concrete,
+  false-ceiling grid, pipe slope / fall, **coat-wise painting system** (primer, putty and
+  paint coats each with their own TDS coverage) and a coverage-material tool (bond coat,
+  sealer, epoxy, anti-termite, curing compound).
 - **Libraries:** two-way unit converter (NIST SP 811 exact factors, incl. RFT / SFT / CFT,
   Marla / Kanal both conventions, brass, maund), conversion library, formula library,
   constants / unit weights (materials with status and source; BS 4449, ASTM A615,
   IEC 60228, gauge and AWG tables), density settings, and **custom calculations** (your
   own named formula, inputs, units and optional density).
+- Search answers directly: `10 cft to m3`, `5 marla in sft` (both conventions),
+  `100 cft rcc to kg`, `500 kg cement in cft`. It knows site terms (sariya, eent, chunai,
+  bajri, ret, khudai, bharai, rang, taar, masala …) and tolerates typos.
 - Search box (in the tab and in the dashboard-wide search) understands `20mm rebar`,
   `#5`, `ISMB 300`, `MS pipe 4 inch`, `10mm plate`, `25x25 angle`, `RHS 100x50x5`,
   `W12x26`, `brickwork`, `paint`, `cable`. Favourites (★), recent calculations (reopen /
@@ -351,7 +368,8 @@ published (UPN, UPE, IPN, HD, HP, EN angles) the mass is computed from the exact
 (fillets, toe radii, taper) at 7850 kg/m³ and labelled *calculated* — checked against
 catalogue values (UPN 100 13.47 vs 13.5 cm², IPN 300 69.00 vs 69.0 cm²). Values that
 could not be verified are not invented: plastic pipe densities, paint coverage, grout
-density, membrane consumption and overall cable weight must be entered from the product
+density, membrane consumption, putty / primer / paint coverage per coat, binding-wire
+length per tie, soil / aggregate density and overall cable weight must be entered from the product
 data sheet, and the calculator refuses to calculate until they are. QS conventions (dry-
 volume factors 1.54 / 1.27, joint thickness, wastage) are editable and badged
 *convention*. To rebuild the data:
