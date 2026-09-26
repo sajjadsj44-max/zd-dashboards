@@ -343,6 +343,79 @@ MAK_BILL="MAK Final Bill Checking.xlsx" python3 -m unittest tools/test_mep_rates
 The build stops if any rows grouped into one item carry different rates. The bill
 workbook is not committed.
 
+## QS Rate Analysis Engine (Rate Analysis)
+
+Added 26-Sep-2026. The brief it was built against, including what was changed in the original
+prompt and why, is in [`docs/qs-rate-engine-brief.md`](docs/qs-rate-engine-brief.md).
+
+- **19 QS categories** (Civil Works … Miscellaneous and Specialized Works), each with its own
+  sub-categories. Every item is classified by rule, and the category and sub-category can be
+  overridden per item. A Category / Sub-category filter above the item search controls the item
+  dropdown and the search results. The same filters are on the Item Library, the Register, the
+  Audit view and the Rate Database ("used in category"). Opening an item from another category
+  switches the filter to that item's category.
+- **Material-based builders** replace lump "materials" with purchase-unit resources. Each row
+  carries *formula = working = result*, and every parameter can be edited:
+  gypsum ceiling (board ÷ sheet area, main and furring channels by spacing, perimeter angle, hanger
+  rod, anchors, connectors, screws, tape, compound), drywall partition, tiles (grout from joint
+  geometry, adhesive from the TDS, or a mortar bed), paint coat by coat, pipe with counted
+  fittings and clamps, PVC conduit, cable tray with supports, LT cable with glands and lugs,
+  screed and formwork. Builder rows carry their own wastage, so item wastage B is 0.
+- **Confidence** is derived, never typed: *Verified*, *Reference-Based*, *Assumed* or *Review
+  Required* (unpriced, composite / installed rate used as a material, source older than the
+  staleness limit (default 12 months, set in Settings), or a high-severity audit finding). An
+  item takes the worst level among its components, and the reasons are listed on the item.
+- **Tax (I)** is added after overheads and profit: `I = tax % × (direct + G + H)`. The default
+  is in Settings and it can be overridden per item. The bases of G, H and I are printed.
+- **Revisions**: *Save revision* snapshots an item (15 kept). Compare any two revisions, or a
+  revision against the current build-up. Every Rate Database edit is logged with its old and new
+  values and the analyses it re-priced (300 entries kept). Items record who updated them and when.
+- **QS Register & Reports**: filter by category, sub-category, confidence, location and update
+  date. Exports: register to Excel and CSV; a detailed workbook with one sheet per analysis and
+  live Excel formulas (`Amount = Qty × Rate`, sub-totals, G / H / I); printable PDF sheets; a
+  material and labour breakdown.
+- **Audit & Quotations**: the corrections applied (with rate before and after), the rate lines
+  that need a supplier quotation, and every audit finding. Items are flagged, never deleted.
+
+Seed corrections are applied only to items and lines still exactly as seeded. An item already
+edited by hand is left alone and listed, with a button to apply the builder, which saves a
+revision first. Applied on the first load after this change:
+
+| Item | Error found | Correction |
+|---|---|---|
+| SC-420 screed 1" 1:4 | cement 0.0217 was the cement *volume* in cft, not bags (÷ 1.25 omitted); sand 0.1083 was the whole dry volume, not the 4/5 share — both +25 % | screed builder: 0.01733 bag, 0.08667 cft (+5 % wastage) |
+| FN-500 / FN-505 tiles | grout 0.08 kg/Sft ≈ 10 × the joint volume for 24" tiles, 1/16" joints | tile builder |
+| FN-550 gypsum ceiling | `GYPBD` 200/Sft was an installed rate entered as a material | gypsum builder (11 resources) |
+| FN-530 / 535 / 540 paint | `PUTTY`, `PRIMER`, `EMUL`, `WSHIELD` were per-Sft systems | paint builder, priced per Ltr / Kg |
+| PL-700 / PL-710 pipes, EL-600 conduit, EL-650 tray | pipe / tray + a percentage for fittings | counted fittings, clamps and supports from Quadrangle GRNs |
+| EL-670 LT cable | glands and lugs not priced | allocated per run |
+| FW-300 … 350 formwork | amortised per-Sft ply / timber lines | sheet price, uses and batten volume explicit |
+| NAILS | 400/kg assumption | Phoenix GRN RCP-273, 21-May-2026 — 715/kg |
+
+Flagged, not changed: FN-510 marble bed thickness is not stated (the quantities imply 7/8");
+FN-560 door has no frame; EW-950 paving has no paver; EW-960 manhole has no materials; EX-130
+compaction factor; EL-615 has one switch per light point; MEP items add house OH / profit on top of
+MAK rates that already include MAK's margin.
+
+**Rates.** The new purchase-unit lines come from the GRN Price Register (same `GRN-…` codes as
+its *+ Rate DB* button, so lines the MEP analyses already use are shared), from dated published
+pages (Reference-Based), or are left at **0** as `ASSUMPTION — no dated source`. From the build
+environment, supplier and price-list sites (United Gypsum, Nippon, Brighto, OLX, icons.com.pk …)
+were blocked by the network egress policy, and search results gave only installed ceiling rates.
+The gypsum board, channels, angle, connectors, tape, compound, studs and tracks are therefore
+**unpriced**, and the gypsum items show *incomplete* until a quotation is entered. The prompt's
+PKR 500 / sheet board is used only as the test figure (500 ÷ 32 × 1.05 = 16.406 / Sft).
+
+Data: the `<script type="application/json" id="raQsEngine">` block, written by
+`tools/qs_engine_data.py` (reads the GRN block of the same page). Tests:
+
+```sh
+tools/qs_engine_data.py --as-of YYYY-MM-DD          # rebuild the data block
+python3 -m unittest tools/test_qs_engine_data.py     # data rules (source format, GRN match, guards)
+python3 -m http.server 8765 &                        # then, with playwright installed:
+node tools/test_qs_engine.js                         # 48 browser checks (QE_LIBS=… for offline Excel)
+```
+
 ## Calculator tab
 
 Sidebar → **Calculator** (after Admin) is a QS / civil / structural / MEP calculator
@@ -513,6 +586,10 @@ tools/lab_mix_data.py               lab concrete mix designs for the Lab Rate An
 tools/test_lab_mix_data.py          tests for the lab mix-design transcription
 tools/kpk_mrs.py                    load the KPK MRS PDF into the KPK MRS Rates tab
 tools/rate_watch.py                 daily check for new KPK / Punjab (Lahore) rate schedules
+tools/qs_engine_data.py             build the QS Rate Analysis Engine data block (categories, rate lines, corrections)
+tools/test_qs_engine_data.py        tests for the engine data block
+tools/test_qs_engine.js             browser tests for the engine (playwright)
+docs/qs-rate-engine-brief.md        revised brief for the QS Rate Analysis Engine
 tools/calc_data.py                  build the Calculator tab's section / pipe / material data block
 .github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
