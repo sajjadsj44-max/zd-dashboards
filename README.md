@@ -416,6 +416,47 @@ python3 -m http.server 8765 &                        # then, with playwright ins
 node tools/test_qs_engine.js                         # 48 browser checks (QE_LIBS=… for offline Excel)
 ```
 
+## Civil gap rate analyses (Rate Analysis)
+
+Added 26-Sep-2026 from Sajjad's list of missing civil analyses
+(`QS_Rate_Analysis_Lahore_2026_All_Missing.txt`), reviewed line by line. The review, including every
+rate side by side with the list, is in [`docs/civil-gap-rate-review.md`](docs/civil-gap-rate-review.md).
+
+- **133 new Item Library items**: `CV-001` … `CV-130` (site preparation, earthwork, concrete, formwork,
+  reinforcement, masonry, waterproofing, plaster, screed, flooring, doors / windows / joinery, painting,
+  ceilings, metal work, external works) and `CV-R01` … `CV-R03` (repair). Each carries its QS category.
+- **Built as full A–H analyses** wherever inputs exist (53 items). Materials use the library's own lines
+  or the GRN register. Labour uses the Punjab MRS 1st Bi-Annual 2026 labour-only rate for the same
+  operation, with the same `MRS-C…` codes as the MRS register's *+ Rate DB* button.
+  - 30 items use an **MRS 2026 composite rate**.
+  - 9 use a **dated web installed rate**.
+  - 41 keep the list's figure as a `BM-CV-<n>` line marked **`ASSUMPTION — no dated source`**, so they
+    show as Assumed until a quotation replaces them.
+- **Seed items repaired:** FN-560 gains its galvanised steel door frame (Quadrangle GRN). EW-950 gains
+  the paver block. EW-960 gains the materials of a 3 × 3 ft × 5 ft brick manhole. The gypsum items
+  (FN-550, QS-GYP-P01) stay incomplete, because no dated board or GI-section price was found.
+- **Shared lines moved:**
+  - `L-HELPER` 1,300 → 1,538 per day (Punjab minimum wage notification, 01-May-2026: 40,000 per month
+    ÷ 26 days). This raises almost every civil item.
+  - `BRK-2` 15 → 12.5 (Lahore B-class bricks, web search 26-Sep-2026).
+
+Saved libraries pick the block up on their next load, the same way as the MEP block (`raSyncBlk`,
+revision key `civRev`):
+
+- missing lines and items are added;
+- a line or seed item still at its published version (`prevRates` / `prevItems`) is moved to the new one;
+- anything edited by hand is left alone.
+
+Data: the `<script type="application/json" id="raCivilData">` block, written by `tools/civil_gap_data.py`
+(it reads the GRN and MRS blocks of the same page).
+
+```sh
+tools/civil_gap_data.py --as-of 2026-09-26          # rebuild the data block
+python3 -m unittest tools/test_civil_gap_data.py    # data rules: sources, units, MRS match, worked examples
+python3 -m http.server 8765 &                       # then, with playwright installed:
+node tools/test_civil_gap.js                        # 18 browser checks: fresh and saved-library merge
+```
+
 ## Calculator tab
 
 Sidebar → **Calculator** (after Admin) is a QS / civil / structural / MEP calculator
@@ -590,6 +631,10 @@ tools/qs_engine_data.py             build the QS Rate Analysis Engine data block
 tools/test_qs_engine_data.py        tests for the engine data block
 tools/test_qs_engine.js             browser tests for the engine (playwright)
 docs/qs-rate-engine-brief.md        revised brief for the QS Rate Analysis Engine
+tools/civil_gap_data.py             build the civil gap-analysis data block (CV items, rate lines, seed repairs)
+tools/test_civil_gap_data.py        tests for the civil gap data block
+tools/test_civil_gap.js             browser tests for the civil gap merge (playwright)
+docs/civil-gap-rate-review.md       review of the missing-items rate list, with every rate side by side
 tools/calc_data.py                  build the Calculator tab's section / pipe / material data block
 .github/workflows/rate-watch.yml    runs the rate watch daily and offers updates as a pull request
 .github/workflows/deploy-pages.yml  deploy to Pages + mirror main onto gh-pages
