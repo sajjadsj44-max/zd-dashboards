@@ -58,7 +58,7 @@ class QsEngineData(unittest.TestCase):
     def test_grn_lines_match_the_grn_register(self):
         g = block(self.html, "raGrnData")
         latest = {}
-        for ix, date, rate, qty, grn, vi in g["rc"]:
+        for ix, date, rate, qty, grn, vi, *_ in g["rc"]:
             if ix not in latest or (date, grn) > (latest[ix][0], latest[ix][2]):
                 latest[ix] = (date, rate, grn)
         by_desc = {}

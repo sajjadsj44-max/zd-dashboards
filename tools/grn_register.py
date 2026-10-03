@@ -13,7 +13,10 @@ name, so extra or reordered columns are fine.
 Receipts already in the register are kept. A receipt counts as already held when
 site, GRN, item code, description, quantity and rate match one in the register
 (compared by count, since a GRN can repeat a line), so re-running with an
-updated, cumulative export only adds the new GRNs. The data lives in the
+updated, cumulative export only adds the new GRNs. Receipts added from a Sage PO
+list (tools/po_register.py) are dated by their PO date until an export holds the
+same GRN line (site, GRN, item code, quantity, rate); its GRN date then replaces
+the PO date. The data lives in the
 `<script type="application/json" id="raGrnData">` block of the dashboard.
 
 Units are normalised to the house units (Nos, Rft, Sft, Cft, Kg, Ton, Ltr ...).
@@ -107,25 +110,35 @@ def read_xlsx(path):
 
 
 def unpack(data):
-    """Flatten the stored register back into receipt dicts."""
+    """Flatten the stored register back into receipt dicts.
+
+    A receipt row is [item, date, rate, qty, grn, vendor] plus, when tools/po_register.py
+    has linked it, the index of its PO in "pos" (-1 for none) and "P" when its date is
+    that PO's date because the GRN date is not known yet."""
     if not data:
         return []
-    items, out = data["items"], []
-    for ix, date, rate, qty, grn, vi in data["rc"]:
+    items, pos, out = data["items"], data.get("pos", []), []
+    for r in data["rc"]:
+        ix, date, rate, qty, grn, vi = r[:6]
         s, code, desc, mi, si, uom = items[ix][:6]
-        out.append({
+        rec = {
             "site": data["sites"][s], "grn": grn, "date": date,
             "vendor": data["vendors"][vi], "code": code, "desc": desc,
             "uom": uom, "qty": qty, "rate": rate,
             "main": data["cats"][mi], "sub": data["cats"][si],
-        })
+        }
+        if len(r) > 6 and r[6] >= 0:
+            rec["po"] = pos[r[6]]
+        if len(r) > 7:
+            rec["basis"] = r[7]
+        out.append(rec)
     return out
 
 
 def pack(receipts, sources):
-    sites, vendors, cats, items = [], [], [], []
+    sites, vendors, cats, items, pos = [], [], [], [], []
     idx = lambda lst, v: lst.index(v) if v in lst else (lst.append(v) or len(lst) - 1)
-    item_ix = {}
+    item_ix, po_ix = {}, {}
     receipts.sort(key=lambda r: (r["site"], r["desc"].lower(), r["code"], r["uom"], r["date"], r["grn"]))
     rc = []
     for r in receipts:
@@ -136,13 +149,47 @@ def pack(receipts, sources):
             items.append([idx(sites, r["site"]), r["code"], r["desc"],
                           idx(cats, r["main"]), idx(cats, r["sub"]), r["uom"],
                           unit, round(k, 8)])
-        rc.append([item_ix[key], r["date"], r["rate"], r["qty"], r["grn"], idx(vendors, r["vendor"])])
+        row = [item_ix[key], r["date"], r["rate"], r["qty"], r["grn"], idx(vendors, r["vendor"])]
+        po = r.get("po")
+        if po and po[0] not in po_ix:
+            po_ix[po[0]] = len(pos)
+            pos.append(po)
+        if po or r.get("basis"):
+            row.append(po_ix[po[0]] if po else -1)
+        if r.get("basis"):
+            row.append(r["basis"])
+        rc.append(row)
     dates = [r["date"] for r in receipts]
-    return {
+    out = {
         "rev": dt.date.today().isoformat(), "sources": sources,
         "from": min(dates), "to": max(dates),
         "sites": sites, "vendors": vendors, "cats": cats, "items": items, "rc": rc,
     }
+    if pos:
+        out["pos"] = pos  # [PO no, PO date, posted on, arrival date, status, no. of receipts]
+    return out
+
+
+def save(path, html, m, data):
+    blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
+    path.write_text(html[:m.start(2)] + blob + html[m.end(2):], encoding="utf-8")
+
+
+def date_from_grn(receipts, rows):
+    """Give receipts added from a PO list (dated by PO date) the GRN date of the same receiving line."""
+    waiting = {}
+    for r in receipts:
+        if r.get("basis") == "P":
+            waiting.setdefault((r["site"], r["grn"], r["code"], r["qty"], r["rate"]), []).append(r)
+    n = 0
+    for row in rows:
+        hit = waiting.get((row["site"], row["grn"], row["code"], row["qty"], row["rate"]))
+        if hit:
+            r = hit.pop(0)
+            r.update({k: row[k] for k in ("date", "vendor", "desc", "uom", "main", "sub")})
+            del r["basis"]
+            n += 1
+    return n
 
 
 def main():
@@ -158,13 +205,14 @@ def main():
     old = json.loads(m.group(2)) if m.group(2).strip() else None
 
     receipts = unpack(old)
+    batches = [(p, read_xlsx(p)) for p in a.xlsx]
+    dated = date_from_grn(receipts, [r for _, rows in batches for r in rows])
     key = lambda r: (r["site"], r["grn"], r["code"], r["desc"], r["qty"], r["rate"])
     # a GRN can list the same item twice, so compare counts rather than presence
     have = Counter(key(r) for r in receipts)
     sources = list(old["sources"]) if old else []
     added = 0
-    for p in a.xlsx:
-        rows = read_xlsx(p)
+    for p, rows in batches:
         fresh = Counter()
         n = 0
         for r in rows:
@@ -179,9 +227,9 @@ def main():
         added += n
 
     data = pack(receipts, sources)
-    blob = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/")
-    html = html[:m.start(2)] + blob + html[m.end(2):]
-    a.html.write_text(html, encoding="utf-8")
+    save(a.html, html, m, data)
+    if dated:
+        print(f"{dated} receipts dated by PO date now carry their GRN date")
     print(f"{added} new receipts added; register now {len(data['rc'])} receipts, "
           f"{len(data['items'])} items, {data['from']} to {data['to']}")
 

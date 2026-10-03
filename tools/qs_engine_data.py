@@ -69,10 +69,11 @@ class Grn:
         for ix, it in enumerate(d["items"]):
             self.items.append({"ix": ix, "site": d["sites"][it[0]], "code": it[1], "desc": it[2],
                                "uom": it[5], "unit": it[6], "k": it[7], "rc": []})
-        for ix, date, rate, qty, grn, vi in d["rc"]:
+        for ix, date, rate, qty, grn, vi, *po in d["rc"]:  # po: PO index, "P" if dated by PO date
             it = self.items[ix]
             it["rc"].append({"date": date, "grnRate": rate, "rate": round(rate * it["k"] + 1e-9, 2),
-                             "grn": grn, "vendor": d["vendors"][vi]})
+                             "grn": grn, "vendor": d["vendors"][vi],
+                             "po": d["pos"][po[0]][0] if po and po[0] >= 0 else "", "poDated": po[1:] == ["P"]})
         seen = {}
         for it in self.items:
             seen[(it["site"], it["code"])] = seen.get((it["site"], it["code"]), 0) + 1
@@ -92,7 +93,10 @@ class Grn:
     def remark(self, it):
         l, rates = it["last"], [r["rate"] for r in it["rc"]]
         age = (self.as_of - dt.date.fromisoformat(l["date"])).days
-        s = f"{it['site']} GRN {l['grn'] or '(no receipt no.)'}, {dmy(l['date'])} — {l['vendor'] or 'vendor not recorded'}"
+        po = f" ({l['po']})" if l["poDated"] else ""
+        s = f"{it['site']} GRN {l['grn'] or '(no receipt no.)'}{po}, {dmy(l['date'])} — {l['vendor'] or 'vendor not recorded'}"
+        if l["poDated"]:
+            s += "; dated by the PO date, GRN date not in the Sage PO list"
         if it["k"] != 1:
             s += f"; billed {rs(l['grnRate'])} per {it['uom']}, converted to per {it['unit']}"
         if len(it["rc"]) > 1:

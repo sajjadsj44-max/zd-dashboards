@@ -105,6 +105,28 @@ tools/grn_register.py NEW_RECEIVING.xlsx  # one or more exports
 Receipts already in the register are skipped, so a cumulative export can be
 re-run safely. The raw exports are not committed.
 
+**Purchase orders (Phoenix).** The Sage 300 report *P/O Purchase Order List
+(POPODET1)*, printed to PDF, links each Phoenix receipt to its PO: the register,
+History and both CSVs show the PO number and PO date beside the GRN. A PO
+received in one GRN that the register does not hold yet is added from the PO
+list at its unit cost, **dated by the PO date** (the report has no GRN date) and
+marked <kbd>PO date</kbd> on screen, in the CSVs (*Date is*) and in the
+**+ Rate DB** remarks. The next receiving export that holds the same GRN line
+replaces the PO date with the GRN date. Loaded on 03-Oct-2026 from
+`POPODET1-20261002-180044.pdf` (362 POs): 789 Phoenix receipts carry their PO
+and 19 receipts were added for GRNs RCP-3, RCP-4 and RCP-318 to RCP-328, so the
+register runs to 28-Sep-2026.
+
+```sh
+pip install pdfplumber                       # once
+tools/po_register.py POPODET1.pdf            # --site Phoenix by default
+```
+
+The report's dates are read by column position (Posted On, Purchase Order Date,
+Arrival Date), because long vendor names overprint the Posted On date in the
+PDF text. A PO received in several GRNs whose last GRN is missing is listed,
+not added, since the report does not split its quantity by GRN.
+
 ## KPK MRS Rates (Rate Analysis)
 
 QS Cost Control → **KPK MRS Rates** lists all 4,584 items of the Khyber
@@ -925,6 +947,8 @@ zameen-developments/index.html      Zameen Developments dashboard
 drawing-tracker/index.html          Drawing Tracker dashboard
 takeoff/index.html, takeoff.js      PDF Takeoff (pdf.js viewer, scale, snapping, measurement sheet)
 tools/grn_register.py               merge GRN receiving exports into the GRN Price Register
+tools/po_register.py                link GRN receipts to Sage POs (POPODET1 PDF); add GRNs dated by PO date
+tools/test_po_register.py           tests for the PO list loader
 tools/mrs_register.py               load a Punjab MRS PDF into the Punjab MRS Rates register
 tools/test_mrs_register.py          tests for the MRS loader
 tools/mep_rates.py                  build the MEP rate analyses from the MAK final bill + GRN register
