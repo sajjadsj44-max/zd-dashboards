@@ -6,10 +6,10 @@ Static, self-contained HTML dashboards published live on Netlify and GitHub Page
 
 | Page | Netlify (short link to share) | GitHub Pages |
 |---|---|---|
-| Zameen Developments | https://zd-dashboard.netlify.app/ | https://sajjadsj44-max.github.io/zd-dashboards/zameen-developments/ |
-| Drawing Tracker | https://zd-dashboard.netlify.app/drawing-tracker/ | https://sajjadsj44-max.github.io/zd-dashboards/drawing-tracker/ |
-| PDF Takeoff | https://zd-dashboard.netlify.app/takeoff/ | https://sajjadsj44-max.github.io/zd-dashboards/takeoff/ |
-| Dashboard index | https://zd-dashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/zd-dashboards/ |
+| Zameen Developments | https://zd-dashboard.netlify.app/ | https://sajjadsj44-max.github.io/ZD-Dashboard/zameen-developments/ |
+| Drawing Tracker | https://zd-dashboard.netlify.app/drawing-tracker/ | https://sajjadsj44-max.github.io/ZD-Dashboard/drawing-tracker/ |
+| PDF Takeoff | https://zd-dashboard.netlify.app/takeoff/ | https://sajjadsj44-max.github.io/ZD-Dashboard/takeoff/ |
+| Dashboard index | https://zd-dashboard.netlify.app/index.html | https://sajjadsj44-max.github.io/ZD-Dashboard/ |
 
 On Netlify the site root serves the dashboard itself (see the rewrite in
 `netlify.toml`); on GitHub Pages the root serves the index page instead.
